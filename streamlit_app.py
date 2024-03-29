@@ -36,7 +36,7 @@ st.set_page_config(
 def find_boundary(npark_boundary,npark_name):
     npark_boundary = npark_boundary[npark_boundary['DESIG']=='국립공원']
     seoul_npark_boundary = npark_boundary[npark_boundary['ORIG_NAME']==npark_name]
-    name_list = ['설악산','변산반도','경주','덕유산','다도해해상','월악산']
+    name_list = ['설악산','변산반도','경주','덕유산','다도해해상','월악산','오대산']
     if npark_name in name_list:
         seoul_npark_boundary=seoul_npark_boundary.explode()
         seoul_npark_boundary = seoul_npark_boundary.reset_index()
