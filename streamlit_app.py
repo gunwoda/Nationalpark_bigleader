@@ -23,6 +23,8 @@ import plotly.graph_objects as go
 from folium.plugins import Fullscreen
 import seaborn as sns
 import matplotlib.colors as mcolors
+from streamlit_extras.app_logo import add_logo
+
 #######################
 # Page configuration
 st.set_page_config(
@@ -36,7 +38,13 @@ st.set_page_config(
 def find_boundary(npark_boundary,npark_name):
     npark_boundary = npark_boundary[npark_boundary['DESIG']=='국립공원']
     seoul_npark_boundary = npark_boundary[npark_boundary['ORIG_NAME']==npark_name]
-    name_list = ['설악산','변산반도','경주','덕유산','다도해해상','월악산','오대산']
+    return seoul_npark_boundary
+
+# Plots
+def find_boundary_hotspot(npark_boundary,npark_name):
+    npark_boundary = npark_boundary[npark_boundary['DESIG']=='국립공원']
+    seoul_npark_boundary = npark_boundary[npark_boundary['ORIG_NAME']==npark_name]
+    name_list = ['설악산','변산반도','경주','덕유산','다도해해상','월악산','오대산','한려해상','태안해안']
     if npark_name in name_list:
         seoul_npark_boundary=seoul_npark_boundary.explode()
         seoul_npark_boundary = seoul_npark_boundary.reset_index()
@@ -973,22 +981,7 @@ def plot_donut_chart(df):
 #######################
 # Sidebar
 with st.sidebar:
-    image1 = './logo/국립공원공단.png'
-    # image2 = './logo/빅리더.png'
-    # 두 컬럼 생성
-    col1, col2 = st.columns(2)
-
-    # 첫 번째 컬럼에 첫 번째 이미지 배치
-    with col1:
-        st.image(image1, width=200)  # 이미지 크기 조절
-
-
-    # 두 번째 컬럼에 두 번째 이미지 배치
-    # with col2:
-    #     st.image(image2, width=200)  # 이미지 크기 조절
-
     st.title('국립공원 Dashboard')
-
     nationpark_list = ['북한산', '설악산', '지리산', '무등산', '덕유산', '계룡산', '월출산', '태백산', '월악산', '내장산',
        '속리산', '주왕산', '소백산', '변산반도', '치악산', '오대산', '가야산', '다도해해상', '한려해상', '경주',
        '태안해안']
@@ -1005,16 +998,38 @@ with st.sidebar:
     ['전체','20대미만','20대', '30대','40대','50대', '60대', '70대 이상', '미상', '집단'],key='age',default='전체')
     resolution = st.slider('이격 거리 설정', 100, 1000, 500,100,key='distance')
     
-    button = st.button('submit')
+    button = st.button('분석 시작')
+    image1 = './logo/국공.svg'
+    image2 = './logo/Bigleader.png'
+    st.write('')
+    st.write('')
+    st.image(image1)
+    st.image(image2)
 
 
 # Dashboard Main Panel
-if not button:    
-    
+if not button:
+    # custom_html = """
+    # <div class="banner">
+    #     <img src="" alt="Banner Image">
+    # </div>
+    # <style>
+    #     .banner {
+    #         width: 160%;
+    #         height: 200px;
+    #         overflow: hidden;
+    #     }
+    #     .banner img {
+    #         width: 100%;
+    #         object-fit: cover;
+    #     }
+    # </style>
+    # """
+    # # Display the custom HTML
+    # st.components.v1.html(custom_html)
     st.markdown("""
     <style>
     body {
-    background-image: url("https://your_image_url.jpg");
     background-size: cover;
     background-attachment: fixed; /* 배경 이미지 고정 */
     }
@@ -1028,7 +1043,7 @@ if not button:
         font-weight: bold;
         text-align: center;
         margin-top: 30px;
-        color: #4CAF50; /* 제목 색상 */
+        color: #FF0000; /* 제목 색상 */
         text-shadow: 2px 2px 4px #000000; /* 제목에 그림자 효과 추가 */
     }
     .subtitle {
@@ -1109,15 +1124,22 @@ if button:
         df_AED = df_AED[df_AED['국립공원명']==selected_national_park]
         df_fall = df_fall[df_fall['국립공원명']==selected_national_park]
         selected_npark_boundary = find_boundary(npark_boundary,selected_national_park)
+        selected_npark_boundary_hotspot = find_boundary_hotspot(npark_boundary,selected_national_park)
         selected_national_park_accident = sjoin(gdf_park_data,selected_npark_boundary,selected_national_park)
+        selected_national_park_accident_hotspot = sjoin(gdf_park_data,selected_npark_boundary_hotspot,selected_national_park)
+    
         if '전체' not in st.session_state['year']:
              selected_national_park_accident = selected_national_park_accident[selected_national_park_accident['연도'].isin(st.session_state['year'])]
+             selected_national_park_accident_hotspot = selected_national_park_accident_hotspot[selected_national_park_accident_hotspot['연도'].isin(st.session_state['year'])]
         if st.session_state['gender']!='전체':
             selected_national_park_accident = selected_national_park_accident[selected_national_park_accident['성별']==st.session_state['gender']]
+            selected_national_park_accident_hotspot = selected_national_park_accident_hotspot[selected_national_park_accident_hotspot['성별']==st.session_state['gender']]
         if '전체' not in st.session_state['month']:
              selected_national_park_accident = selected_national_park_accident[selected_national_park_accident['월'].isin(st.session_state['month'])]
+             selected_national_park_accident_hotspot = selected_national_park_accident_hotspot[selected_national_park_accident_hotspot['월'].isin(st.session_state['month'])]
         if '전체' not in st.session_state['age']:
             selected_national_park_accident = selected_national_park_accident[selected_national_park_accident['연령대'].isin(st.session_state['age'])]
+            selected_national_park_accident_hotspot = selected_national_park_accident_hotspot[selected_national_park_accident_hotspot['연령대'].isin(st.session_state['age'])]
         # try:
         map_center_lat,map_center_lon = find_center_latitudes_longtitudes(selected_national_park_accident)
         
@@ -1132,6 +1154,13 @@ if button:
             st.metric(label="사고 건수", value=len(selected_national_park_accident))
             fig1 = plot_donut_chart(selected_national_park_accident)
             st.plotly_chart(fig1, use_container_width=True)
+            st.markdown("""
+                <div class="content">
+                    <p>“ 차트 활용법 <br>
+                    1. 차트의 경우 오른쪽 상단에 마우스를 올려둘 시 전체화면으로 확대 버튼이 떠요. <br>
+                    2. 차트 클릭시 인터렉티브하게 반응해요.(사고 건수 파악 가능)  ” </p>
+                </div>
+                """, unsafe_allow_html=True)
 
         with col[1]:
             st.markdown('#### 사고 현황판')
@@ -1148,16 +1177,16 @@ if button:
 
             with tab3:
                 # 지도 생성
-                m3 = make_hotspot_safetyplace(selected_national_park_accident,selected_npark_boundary,safety_place,st.session_state['distance'])
+                m3 = make_hotspot_safetyplace(selected_national_park_accident_hotspot,selected_npark_boundary_hotspot,safety_place,st.session_state['distance'])
                 folium_static(m3)
 
             with tab4:
                 # 지도 생성
-                m4 = make_hotspot_heart(selected_national_park_accident,selected_npark_boundary,df_AED,st.session_state['distance'])
+                m4 = make_hotspot_heart(selected_national_park_accident_hotspot,selected_npark_boundary_hotspot,df_AED,st.session_state['distance'])
                 folium_static(m4)
 
             with tab5:
                 # 지도 생성
-                m5 = make_hotspot_fall(selected_national_park_accident,selected_npark_boundary,df_fall,st.session_state['distance'])
+                m5 = make_hotspot_fall(selected_national_park_accident_hotspot,selected_npark_boundary_hotspot,df_fall,st.session_state['distance'])
                 folium_static(m5)
 
