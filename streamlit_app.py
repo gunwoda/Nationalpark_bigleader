@@ -23,7 +23,6 @@ import plotly.graph_objects as go
 from folium.plugins import Fullscreen
 import seaborn as sns
 import matplotlib.colors as mcolors
-from streamlit_extras.app_logo import add_logo
 
 #######################
 # Page configuration
