@@ -71,7 +71,7 @@ def v_world(selected_national_park_accident):
     # 기본 지도 객체 생성
     m = folium.Map(location=[map_center_lat, map_center_lon], zoom_start=12,tiles=tiles, attr=attr)
     # VWorld Hybrid 타일 추가
-    folium.TileLayer(
+    satelitelayer = folium.TileLayer(
         tiles=f'http://api.vworld.kr/req/wmts/1.0.0/{vworld_key}/Hybrid/{{z}}/{{y}}/{{x}}.png',
         attr='VWorld Hybrid',
         name='지명표시',
@@ -106,7 +106,7 @@ def make_pointplot(selected_national_park_accident,selected_npark_boundary):
     tiles = f"http://api.vworld.kr/req/wmts/1.0.0/{vworld_key}/{layer}/{{z}}/{{y}}/{{x}}.{tileType}"
     attr = "Vworld"
     # 기본 지도 객체 생성
-    m = folium.Map(location=[map_center_lat, map_center_lon], zoom_start=12, tiles=tiles, attr=attr)
+    m = folium.Map(location=[map_center_lat, map_center_lon], zoom_start=12)
     # 전체 화면 버튼 추가
     fullscreen = Fullscreen(position='topleft',  # 버튼 위치
                             title='전체 화면',     # 마우스 오버시 표시될 텍스트
@@ -114,13 +114,13 @@ def make_pointplot(selected_national_park_accident,selected_npark_boundary):
                             force_separate_button=True)  # 전체 화면 버튼을 별도의 버튼으로 표시
     m.add_child(fullscreen)
     # VWorld Hybrid 타일 추가
-    folium.TileLayer(
-        tiles=f'http://api.vworld.kr/req/wmts/1.0.0/{vworld_key}/Hybrid/{{z}}/{{y}}/{{x}}.png',
+    satelitelayer = folium.TileLayer(
+        tiles=tiles,
         attr='VWorld Hybrid',
-        name='지명표시',
+        name='위성사진',
         overlay=True
     ).add_to(m)
-
+    
     # 사고 원인별로 레이어 그룹 생성 및 추가
     for i in color_dict_hex.keys(): # color_dict를 사용하여 반복
         # 사고 원인별 데이터 필터링
@@ -934,7 +934,7 @@ def make_heatmap(selected_national_park_accident,selected_npark_boundary):
     geojson_data = json.loads(selected_npark_boundary.to_json())
     folium.GeoJson(
         geojson_data,
-        name='ㄱ',
+        name='경계',
         style_function=lambda feature: {
             'color': 'yellow',
             'weight': 2,
