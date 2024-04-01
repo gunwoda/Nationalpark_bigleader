@@ -134,8 +134,8 @@ def make_pointplot(selected_national_park_accident,selected_npark_boundary):
         
         # 사고 위치에 대한 CircleMarker 추가 및 툴팁 정보 설정
         for idx, row in type_accident.iterrows():
-            tooltip_text = f"유형: {row['유형']}<br>사고 일자: {row['국립공원명']}"  # 툴팁 텍스트 정의
-            popup_text = f"유형: {row['유형']}<br>사고 일자: {row['국립공원명']}<br>위치: {row['위도_변환']}, {row['경도_변환']}"
+            tooltip_text = f"유형: {row['유형']}<br>사고 일자: {row['연월일']}"  # 툴팁 텍스트 정의
+            popup_text = f"유형: {row['유형']}<br>사고 일자: {row['연월일']}<br>위치: {row['위도_변환']}, {row['경도_변환']}"
             folium.CircleMarker(
                 location=(row['위도_변환'], row['경도_변환']),
                 radius=3,
