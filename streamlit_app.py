@@ -296,7 +296,7 @@ def make_hotspot_safetyplace(selected_national_park_accident,selected_npark_boun
             location=(row['위도'], row['경도']),
             popup=row['쉼터명'],
             radius=3,
-            color='green',
+            color='blue',
             fill=True,
             fill_color='green',
             fill_opacity=1
@@ -988,15 +988,15 @@ with st.sidebar:
     year_list = [2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023]
 
     year_list.insert(0,'전체')
-    year = st.multiselect('연도',year_list,key='year',default='전체')
+    year = st.multiselect('연도 선택',year_list,key='year',default='전체')
     gender_list = ['전체','남','여']
     st.selectbox('성별 선택',gender_list,key='gender')
-    month = st.multiselect('월별',
+    month = st.multiselect('월별 선택',
     ['전체','1월', '2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'],key='month',default='전체')
-    age = st.multiselect('연령대',
+    age = st.multiselect('연령대 선택',
     ['전체','20대미만','20대', '30대','40대','50대', '60대', '70대 이상', '미상', '집단'],key='age',default='전체')
-    resolution = st.slider('이격 거리 설정', 100, 1000, 500,100,key='distance')
-    
+    resolution = st.slider('기존 안전시설물-사고 핫스팟 이격거리 설정', 100, 1000, 500,100,key='distance')
+    st.write('핫스팟에서 벗어난 기존 설치 지점이 곧 핫스팟 내 안전시설물 우선설치 필요 지점 예측을 말해요.')
     button = st.button('분석 시작')
     image1 = './logo/국공.svg'
     image2 = './logo/Bigleader.png'
@@ -1042,7 +1042,7 @@ if not button:
         font-weight: bold;
         text-align: center;
         margin-top: 30px;
-        color: #FF0000; /* 제목 색상 */
+        color: #6A877F; /* 부제목 색상 */
         text-shadow: 2px 2px 4px #000000; /* 제목에 그림자 효과 추가 */
     }
     .subtitle {
@@ -1068,7 +1068,7 @@ if not button:
     st.markdown('<h1 class="title">국립공원 안전사고 분석 리포트</h1>', unsafe_allow_html=True)
 
     # 페이지 부제목 및 소개
-    st.markdown('<h2 class="subtitle">안전사고를 줄이기 위한 분석 및 대책</h2>', unsafe_allow_html=True)
+    st.markdown('<h2 class="subtitle">- 안전사고를 줄이기 위한 분석 및 대책 지원 -</h2>', unsafe_allow_html=True)
 
     st.markdown("""
     <div class="content">
@@ -1163,7 +1163,7 @@ if button:
 
         with col[1]:
             st.markdown('#### 사고 현황판')
-            tab1, tab2, tab3, tab4, tab5 = st.tabs(["사고 현황", "사고 히트맵","안전쉼터위치 선정","AED위치 선정", "추락위험지역 선정"])
+            tab1, tab2, tab3, tab4, tab5 = st.tabs(["사고 현황", "전체 사고 히트맵","안전쉼터위치 선정","AED위치 선정", "추락위험지역 선정"])
             with tab1:
                 # 지도 생성
                 m = make_pointplot(selected_national_park_accident,selected_npark_boundary)
