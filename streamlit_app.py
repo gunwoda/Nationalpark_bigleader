@@ -79,6 +79,31 @@ def v_world(selected_national_park_accident):
     return m
 
 def make_pointplot(selected_national_park_accident,selected_npark_boundary):    
+
+    map_center_lat, map_center_lon = find_center_latitudes_longtitudes(selected_national_park_accident)
+
+    m = folium.Map(location=[map_center_lat, map_center_lon], zoom_start=12)
+    # 전체 화면 버튼 추가
+    fullscreen = Fullscreen(position='topleft',  # 버튼 위치
+                            title='전체 화면',     # 마우스 오버시 표시될 텍스트
+                            title_cancel='전체 화면 해제',  # 전체 화면 모드 해제 버튼의 텍스트
+                            force_separate_button=True)  # 전체 화면 버튼을 별도의 버튼으로 표시
+    m.add_child(fullscreen)
+    # VWorld Hybrid 타일 추가
+    vworld_key = "BF677CB9-D1EA-3831-B328-084A9AE3CDCC"
+    satellite_layer = folium.TileLayer(
+        tiles=f"http://api.vworld.kr/req/wmts/1.0.0/{vworld_key}/Satellite/{{z}}/{{y}}/{{x}}.jpeg",
+        attr='VWorld Satellite', 
+        name='위성지도'
+    ).add_to(m)
+
+    # VWorld Hybrid Layer 추가
+    hybrid_layer = folium.TileLayer(
+        tiles=f"http://api.vworld.kr/req/wmts/1.0.0/{vworld_key}/Hybrid/{{z}}/{{y}}/{{x}}.png",
+        attr='VWorld Hybrid', 
+        name='지명표시', 
+        overlay=True
+    ).add_to(m)
     # 사고 원인별 색상 사전 정의
     palette = sns.color_palette('bright')
 
@@ -97,29 +122,6 @@ def make_pointplot(selected_national_park_accident,selected_npark_boundary):
 
     # 컬러 팔레트에 해당하는 RGB 값을 hex 코드로 변환
     color_dict_hex = {key: mcolors.rgb2hex(value) for key, value in color_dict.items()}
-
-
-
-    map_center_lat, map_center_lon = find_center_latitudes_longtitudes(selected_national_park_accident)
-
-    tiles = f"http://api.vworld.kr/req/wmts/1.0.0/{vworld_key}/{layer}/{{z}}/{{y}}/{{x}}.{tileType}"
-    attr = "Vworld"
-    # 기본 지도 객체 생성
-    m = folium.Map(location=[map_center_lat, map_center_lon], zoom_start=12)
-    # 전체 화면 버튼 추가
-    fullscreen = Fullscreen(position='topleft',  # 버튼 위치
-                            title='전체 화면',     # 마우스 오버시 표시될 텍스트
-                            title_cancel='전체 화면 해제',  # 전체 화면 모드 해제 버튼의 텍스트
-                            force_separate_button=True)  # 전체 화면 버튼을 별도의 버튼으로 표시
-    m.add_child(fullscreen)
-    # VWorld Hybrid 타일 추가
-    satelitelayer = folium.TileLayer(
-        tiles=tiles,
-        attr='VWorld Hybrid',
-        name='위성사진',
-        overlay=True
-    ).add_to(m)
-    
     # 사고 원인별로 레이어 그룹 생성 및 추가
     for i in color_dict_hex.keys(): # color_dict를 사용하여 반복
         # 사고 원인별 데이터 필터링
@@ -134,7 +136,7 @@ def make_pointplot(selected_national_park_accident,selected_npark_boundary):
         # 사고 위치에 대한 CircleMarker 추가 및 툴팁 정보 설정
         for idx, row in type_accident.iterrows():
             tooltip_text = f"유형: {row['유형']}<br>사고 일자: {row['연월일']}"  # 툴팁 텍스트 정의
-            popup_text = f"유형: {row['유형']}<br>사고 일자: {row['연월일']}<br>위치: {row['위도_변환']}, {row['경도_변환']}"
+            popup_text = f"유형: {row['유형']}<br>사고 일자: {row['연월일']}<br>위치: {row['위도_변환']}, {row['경도_변환']}<br>사고장소: {row['위치']}"
             folium.CircleMarker(
                 location=(row['위도_변환'], row['경도_변환']),
                 radius=3,
@@ -295,7 +297,7 @@ def make_hotspot_safetyplace(selected_national_park_accident,selected_npark_boun
             location=(row['위도'], row['경도']),
             popup=row['쉼터명'],
             radius=3,
-            color='blue',
+            color='green',
             fill=True,
             fill_color='green',
             fill_opacity=1
@@ -382,24 +384,75 @@ def make_hotspot_safetyplace(selected_national_park_accident,selected_npark_boun
         return hotspots_far_from_shelters_wgs84
 
     ########## 이격거리 조절가능 ########################## 
-    out_hotspot_layer = folium.FeatureGroup(name='안전쉼터 '+str(distance)+'m 초과 핫스팟지점')
+    out_hotspot_layer = folium.FeatureGroup(name='안전쉼터 추가설치 예측지점')
     try:
         for idx, row in filter_hotspots_far_from_safetyplace(nbr_final, safety_place, distance, 'HH').iterrows():
-            folium.CircleMarker(
+            folium.Marker(
                 location=[row.geometry.centroid.y, row.geometry.centroid.x],
-                radius=3,
-                color='gold',
-                fill=True,
-                fill_color='gold',
-                fill_opacity=0.8
+                icon=folium.Icon(icon="home",color='green'),
             ).add_to(out_hotspot_layer)
         out_hotspot_layer.add_to(m)
     except ValueError as e:
         st.error("사고 발생 건수가 적어 지도 분석이 어려워요. 다른 공원을 분석해 주세요!")
+        
+    # 사고 원인별 색상 사전 정의
+    palette = sns.color_palette('bright')
 
+    # 사건 유형에 대한 색상 딕셔너리
+    color_dict = {
+        '실족': palette[0],
+        '기타': palette[1],
+        '일시적고립': palette[2],
+        '탈진경련': palette[3],
+        '부주의': palette[4],
+        '추락': palette[5],
+        '심장문제': palette[6],
+        '해충 및 동물피해': palette[7],
+        '낙하물': palette[8],
+    }
+
+    # 컬러 팔레트에 해당하는 RGB 값을 hex 코드로 변환
+    color_dict_hex = {key: mcolors.rgb2hex(value) for key, value in color_dict.items()}
+    # 사고 원인별로 레이어 그룹 생성 및 추가
+    for i in color_dict_hex.keys(): # color_dict를 사용하여 반복
+        # 사고 원인별 데이터 필터링
+        type_accident = selected_national_park_accident[selected_national_park_accident['유형'] == i]
+        
+        # 해당 사고 원인의 색상 가져오기
+        accident_color = color_dict_hex[i]  # 사고 원인별로 정의된 색상 사용
+        
+        # 사고 원인별 레이어 그룹 생성
+        layer_group = folium.FeatureGroup(name=i)
+        
+        # 사고 위치에 대한 CircleMarker 추가 및 툴팁 정보 설정
+        for idx, row in type_accident.iterrows():
+            tooltip_text = f"유형: {row['유형']}<br>사고 일자: {row['연월일']}"  # 툴팁 텍스트 정의
+            popup_text = f"유형: {row['유형']}<br>사고 일자: {row['연월일']}<br>위치: {row['위도_변환']}, {row['경도_변환']}<br>사고장소: {row['위치']}"
+            folium.CircleMarker(
+                location=(row['위도_변환'], row['경도_변환']),
+                radius=3,
+                color=accident_color,
+                fill=True,
+                fill_color=accident_color,
+                fill_opacity=1.0,  # 내부 채움 불투명도
+                popup=popup_text,
+                tooltip=tooltip_text  # 툴팁 추가
+            ).add_to(layer_group)
+        
+        # 레이어 그룹을 지도 객체에 추가
+        layer_group.add_to(m)
+    geojson_data = json.loads(selected_npark_boundary.to_json())
+    folium.GeoJson(
+        geojson_data,
+        name='국립공원 경계',
+        style_function=lambda feature: {
+            'color': 'yellow',
+            'weight': 2,
+            'fillOpacity': 0
+        }
+    ).add_to(m)
     # 레이어 컨트롤 추가하여 사용자가 레이어 선택 가능하게 함
     folium.LayerControl().add_to(m)
-
     return m
 
 
@@ -629,21 +682,72 @@ def make_hotspot_heart(selected_national_park_accident,selected_npark_boundary,d
         return hotspots_far_from_shelters_wgs84
 
     ########## 이격거리 조절가능 ########################## 
-    out_hotspot_layer = folium.FeatureGroup(name='AED '+str(distance)+'m 초과 핫스팟지점')
+    out_hotspot_layer = folium.FeatureGroup(name='AED 추가설치 예측지점')
     try:
         for idx, row in filter_hotspots_far_from_AED(nbr_final, df_AED, distance, 'HH').iterrows():
-            folium.CircleMarker(
+            folium.Marker(
                 location=[row.geometry.centroid.y, row.geometry.centroid.x],
-                radius=3,
-                color='gold',
-                fill=True,
-                fill_color='gold',
-                fill_opacity=0.8
+                icon=folium.Icon(icon="heart",color='pink'),
             ).add_to(out_hotspot_layer)
         out_hotspot_layer.add_to(m)
     except ValueError as e:
         st.error("심장 사고 발생 건수가 적어 지도 분석이 어려워요. 다른 공원을 분석해 주세요! ")
+    # 사고 원인별 색상 사전 정의
+    palette = sns.color_palette('bright')
 
+    # 사건 유형에 대한 색상 딕셔너리
+    color_dict = {
+        '실족': palette[0],
+        '기타': palette[1],
+        '일시적고립': palette[2],
+        '탈진경련': palette[3],
+        '부주의': palette[4],
+        '추락': palette[5],
+        '심장문제': palette[6],
+        '해충 및 동물피해': palette[7],
+        '낙하물': palette[8],
+    }
+
+    # 컬러 팔레트에 해당하는 RGB 값을 hex 코드로 변환
+    color_dict_hex = {key: mcolors.rgb2hex(value) for key, value in color_dict.items()}
+    # 사고 원인별로 레이어 그룹 생성 및 추가
+    for i in color_dict_hex.keys(): # color_dict를 사용하여 반복
+        # 사고 원인별 데이터 필터링
+        type_accident = selected_national_park_accident[selected_national_park_accident['유형'] == i]
+        
+        # 해당 사고 원인의 색상 가져오기
+        accident_color = color_dict_hex[i]  # 사고 원인별로 정의된 색상 사용
+        
+        # 사고 원인별 레이어 그룹 생성
+        layer_group = folium.FeatureGroup(name=i)
+        
+        # 사고 위치에 대한 CircleMarker 추가 및 툴팁 정보 설정
+        for idx, row in type_accident.iterrows():
+            tooltip_text = f"유형: {row['유형']}<br>사고 일자: {row['연월일']}"  # 툴팁 텍스트 정의
+            popup_text = f"유형: {row['유형']}<br>사고 일자: {row['연월일']}<br>위치: {row['위도_변환']}, {row['경도_변환']}<br>사고장소: {row['위치']}"
+            folium.CircleMarker(
+                location=(row['위도_변환'], row['경도_변환']),
+                radius=3,
+                color=accident_color,
+                fill=True,
+                fill_color=accident_color,
+                fill_opacity=1.0,  # 내부 채움 불투명도
+                popup=popup_text,
+                tooltip=tooltip_text  # 툴팁 추가
+            ).add_to(layer_group)
+        
+        # 레이어 그룹을 지도 객체에 추가
+        layer_group.add_to(m)
+    geojson_data = json.loads(selected_npark_boundary.to_json())
+    folium.GeoJson(
+        geojson_data,
+        name='국립공원 경계',
+        style_function=lambda feature: {
+            'color': 'yellow',
+            'weight': 2,
+            'fillOpacity': 0
+        }
+    ).add_to(m)
     # 레이어 컨트롤 추가하여 사용자가 레이어 선택 가능하게 함
     folium.LayerControl().add_to(m)
 
@@ -877,21 +981,73 @@ def make_hotspot_fall(selected_national_park_accident,selected_npark_boundary,df
         return hotspots_far_from_shelters_wgs84
 
     ########## 이격거리 조절가능 ########################## 
-    out_hotspot_layer = folium.FeatureGroup(name='추락위험지역 '+str(distance)+'m 초과 핫스팟지점')
+    out_hotspot_layer = folium.FeatureGroup(name='추락위험지역 예측지점')
     try:
         for idx, row in filter_hotspots_far_from_fall(nbr_final, df_fall, distance, 'HH').iterrows():
-            folium.CircleMarker(
+            folium.Marker(
                 location=[row.geometry.centroid.y, row.geometry.centroid.x],
-                radius=3,
-                color='gold',
-                fill=True,
-                fill_color='gold',
-                fill_opacity=0.8
+                icon=folium.Icon(icon="arrow-down"),
             ).add_to(out_hotspot_layer)
         out_hotspot_layer.add_to(m)
     except ValueError as e:
         st.error("추락사고 발생 건수가 적어 지도 분석이 어려워요. 다른 공원을 분석해 주세요! ")
 
+    # 사고 원인별 색상 사전 정의
+    palette = sns.color_palette('bright')
+
+    # 사건 유형에 대한 색상 딕셔너리
+    color_dict = {
+        '실족': palette[0],
+        '기타': palette[1],
+        '일시적고립': palette[2],
+        '탈진경련': palette[3],
+        '부주의': palette[4],
+        '추락': palette[5],
+        '심장문제': palette[6],
+        '해충 및 동물피해': palette[7],
+        '낙하물': palette[8],
+    }
+
+    # 컬러 팔레트에 해당하는 RGB 값을 hex 코드로 변환
+    color_dict_hex = {key: mcolors.rgb2hex(value) for key, value in color_dict.items()}
+    # 사고 원인별로 레이어 그룹 생성 및 추가
+    for i in color_dict_hex.keys(): # color_dict를 사용하여 반복
+        # 사고 원인별 데이터 필터링
+        type_accident = selected_national_park_accident[selected_national_park_accident['유형'] == i]
+        
+        # 해당 사고 원인의 색상 가져오기
+        accident_color = color_dict_hex[i]  # 사고 원인별로 정의된 색상 사용
+        
+        # 사고 원인별 레이어 그룹 생성
+        layer_group = folium.FeatureGroup(name=i)
+        
+        # 사고 위치에 대한 CircleMarker 추가 및 툴팁 정보 설정
+        for idx, row in type_accident.iterrows():
+            tooltip_text = f"유형: {row['유형']}<br>사고 일자: {row['연월일']}"  # 툴팁 텍스트 정의
+            popup_text = f"유형: {row['유형']}<br>사고 일자: {row['연월일']}<br>위치: {row['위도_변환']}, {row['경도_변환']}<br>사고장소: {row['위치']}"
+            folium.CircleMarker(
+                location=(row['위도_변환'], row['경도_변환']),
+                radius=3,
+                color=accident_color,
+                fill=True,
+                fill_color=accident_color,
+                fill_opacity=1.0,  # 내부 채움 불투명도
+                popup=popup_text,
+                tooltip=tooltip_text  # 툴팁 추가
+            ).add_to(layer_group)
+        
+        # 레이어 그룹을 지도 객체에 추가
+        layer_group.add_to(m)
+    geojson_data = json.loads(selected_npark_boundary.to_json())
+    folium.GeoJson(
+        geojson_data,
+        name='국립공원 경계',
+        style_function=lambda feature: {
+            'color': 'yellow',
+            'weight': 2,
+            'fillOpacity': 0
+        }
+    ).add_to(m)
     # 레이어 컨트롤 추가하여 사용자가 레이어 선택 가능하게 함
     folium.LayerControl().add_to(m)
 
