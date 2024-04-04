@@ -20,9 +20,11 @@ from splot.esda import plot_moran, moran_scatterplot, lisa_cluster
 from esda.moran import Moran, Moran_Local
 from streamlit_folium import folium_static
 import plotly.graph_objects as go
-from folium.plugins import Fullscreen
 import seaborn as sns
 import matplotlib.colors as mcolors
+from folium import IFrame
+from folium.plugins import Fullscreen, FloatImage
+from branca.element import Template, MacroElement
 
 #######################
 # Page configuration
@@ -123,6 +125,7 @@ def make_pointplot(selected_national_park_accident,selected_npark_boundary):
     # 컬러 팔레트에 해당하는 RGB 값을 hex 코드로 변환
     color_dict_hex = {key: mcolors.rgb2hex(value) for key, value in color_dict.items()}
     # 사고 원인별로 레이어 그룹 생성 및 추가
+
     for i in color_dict_hex.keys(): # color_dict를 사용하여 반복
         # 사고 원인별 데이터 필터링
         type_accident = selected_national_park_accident[selected_national_park_accident['유형'] == i]
@@ -150,6 +153,8 @@ def make_pointplot(selected_national_park_accident,selected_npark_boundary):
         
         # 레이어 그룹을 지도 객체에 추가
         layer_group.add_to(m)
+    
+    
     geojson_data = json.loads(selected_npark_boundary.to_json())
     folium.GeoJson(
         geojson_data,
@@ -161,27 +166,8 @@ def make_pointplot(selected_national_park_accident,selected_npark_boundary):
         }
     ).add_to(m)
 
-    # 레이어 컨트롤 추가
     folium.LayerControl().add_to(m)
-    # 범례 추가 코드 ...
-    # 범례 추가
-    legend_html = '''
-     <div style="position: fixed; 
-     bottom: 5px; left: 5px; width: 150px; height: 150px; 
-     background-color: white; color: black; border:2px solid grey; z-index:9999; font-size:14px;
-     padding: 1px 1px; ">
-     &nbsp; 실족추락 &nbsp; <i class="fa fa-circle fa-1x" style="color:red"></i><br>
-     &nbsp; 무리한 활동 &nbsp; <i class="fa fa-circle fa-1x" style="color:green"></i><br>
-     &nbsp; 길잃음 &nbsp; <i class="fa fa-circle fa-1x" style="color:blue"></i><br>
-     &nbsp; 개인질환 &nbsp; <i class="fa fa-circle fa-1x" style="color:yellow"></i><br>
-     &nbsp; 동물 및 해충 &nbsp; <i class="fa fa-circle fa-1x" style="color:gray"></i><br>
-     &nbsp; 부주의 &nbsp; <i class="fa fa-circle fa-1x" style="color:purple"></i><br>
-     &nbsp; 자연 및 환경 &nbsp; <i class="fa fa-circle fa-1x" style="color:skyblue"></i><br>
-      </div>
-     '''
-    m.get_root().html.add_child(folium.Element(legend_html))
-
-    return m
+    return m,color_dict_hex
 
 
 
@@ -1320,10 +1306,31 @@ if button:
             st.markdown('#### 사고 현황판')
             tab1, tab2, tab3, tab4, tab5 = st.tabs(["사고 현황", "전체 사고 히트맵","안전쉼터위치 선정","AED위치 선정", "추락위험지역 선정"])
             with tab1:
-                # 지도 생성
-                m = make_pointplot(selected_national_park_accident,selected_npark_boundary)
-                folium_static(m)
+                col1 = st.columns((7, 3), gap='medium')
+                with col1[0]:
+                    # 지도 생성
+                    m = make_pointplot(selected_national_park_accident,selected_npark_boundary)
+                    folium_static(m)
+                with col1[1]:
+                    # 데이터 준비
+                    data = {
+                        "범례": ["#F78181", "#F7D358", "#2EFEF7", "#58FA58", "#FA58F4", "#0000FF", "#585858", "#FF8000", "#DF0101"],
+                        "사고유형": ["실족", "기타", "일시적고립", "탈진경련", "부주의", "추락", "심장문제", "해충 및 동물피해", "낙하물"]
+                    }
 
+                    df = pd.DataFrame(data)
+
+                    # 색상을 나타내는 HTML 코드로 셀을 변환
+                    df['Color'] = df['Color'].apply(lambda x: f'<div style="width: 26px; height: 20px; background-color: {x};"></div>')
+
+                    # DataFrame을 HTML로 변환
+                    html = df.to_html(escape=False,index=False)
+
+                    # Streamlit에 HTML 표시
+                    st.markdown(html, unsafe_allow_html=True)
+
+
+            
             with tab2:
                 # 지도 생성
                 m2 = make_heatmap(selected_national_park_accident,selected_npark_boundary)
