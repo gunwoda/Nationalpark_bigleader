@@ -111,21 +111,20 @@ def make_pointplot(selected_national_park_accident,selected_npark_boundary):
 
     # 사건 유형에 대한 색상 딕셔너리
     color_dict = {
-        '실족': palette[0],
+        '실족ㆍ골절': palette[0],
         '기타': palette[1],
         '일시적고립': palette[2],
         '탈진경련': palette[3],
-        '부주의': palette[4],
+        '낙석ㆍ낙빙': palette[4],
         '추락': palette[5],
-        '심장문제': palette[6],
-        '해충 및 동물피해': palette[7],
-        '낙하물': palette[8],
+        '심장사고': palette[6],
+        '해충피해': palette[7],
+        '익수': palette[8],
     }
 
     # 컬러 팔레트에 해당하는 RGB 값을 hex 코드로 변환
     color_dict_hex = {key: mcolors.rgb2hex(value) for key, value in color_dict.items()}
     # 사고 원인별로 레이어 그룹 생성 및 추가
-
     for i in color_dict_hex.keys(): # color_dict를 사용하여 반복
         # 사고 원인별 데이터 필터링
         type_accident = selected_national_park_accident[selected_national_park_accident['유형'] == i]
@@ -1244,7 +1243,7 @@ if button:
         # GeoPackage 파일로부터 GeoDataFrame 불러오기
         plt.rcParams['font.family'] ='Malgun Gothic'
         plt.rcParams['axes.unicode_minus'] =False
-        gdf_park_data = gpd.read_file("./data/park_data2.gpkg", layer='park_data')
+        gdf_park_data = gpd.read_file("./data/park_data2.gpkg", layer='park_data2')
         sign_place = gpd.read_file("./data/sign_place.gpkg", layer='sign_place')
         df_탐방로 = gpd.read_file('./data/국립공원시설_선형시설.shp')
         npark_boundary = gpd.read_file('./data/npark_boundary.gpkg',layer='npark_boundary')
@@ -1286,7 +1285,7 @@ if button:
         vworld_key="BF677CB9-D1EA-3831-B328-084A9AE3CDCC" # VWorld API key
         layer = "Satellite" # VWorld layer
         tileType = "jpeg" # tile type
-        accident_list = selected_national_park_accident['사고원인그룹'].value_counts().index
+        accident_list = selected_national_park_accident['유형'].value_counts().index
 
         col = st.columns((2.5, 5.5), gap='medium')
 
@@ -1309,19 +1308,13 @@ if button:
                 col1 = st.columns((7, 3), gap='medium')
                 with col1[0]:
                     # 지도 생성
-                    m = make_pointplot(selected_national_park_accident,selected_npark_boundary)
+                    m,color_dict = make_pointplot(selected_national_park_accident,selected_npark_boundary)
                     folium_static(m)
                 with col1[1]:
                     # 데이터 준비
-                    data = {
-                        "범례": ["#F78181", "#F7D358", "#2EFEF7", "#58FA58", "#FA58F4", "#0000FF", "#585858", "#FF8000", "#DF0101"],
-                        "사고유형": ["실족", "기타", "일시적고립", "탈진경련", "부주의", "추락", "심장문제", "해충 및 동물피해", "낙하물"]
-                    }
-
-                    df = pd.DataFrame(data)
-
+                    df = pd.DataFrame(list(color_dict.items()), columns=['유형', '범례'])
                     # 색상을 나타내는 HTML 코드로 셀을 변환
-                    df['Color'] = df['Color'].apply(lambda x: f'<div style="width: 26px; height: 20px; background-color: {x};"></div>')
+                    df['범례'] = df['범례'].apply(lambda x: f'<div style="width: 26px; height: 20px; background-color: {x};"></div>')
 
                     # DataFrame을 HTML로 변환
                     html = df.to_html(escape=False,index=False)
