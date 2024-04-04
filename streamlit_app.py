@@ -24,7 +24,7 @@ import seaborn as sns
 import matplotlib.colors as mcolors
 from folium import IFrame
 from folium.plugins import Fullscreen, FloatImage
-from branca.element import Template, MacroElement
+from folium.plugins import GroupedLayerControl
 
 #######################
 # Page configuration
@@ -125,16 +125,16 @@ def make_pointplot(selected_national_park_accident,selected_npark_boundary):
     # 컬러 팔레트에 해당하는 RGB 값을 hex 코드로 변환
     color_dict_hex = {key: mcolors.rgb2hex(value) for key, value in color_dict.items()}
     # 사고 원인별로 레이어 그룹 생성 및 추가
-    for i in color_dict_hex.keys(): # color_dict를 사용하여 반복
-        # 사고 원인별 데이터 필터링
+    # 사고 원인별로 레이어 그룹 생성 및 추가
+    accident_types = selected_national_park_accident['유형'].unique()
+   # 사고 원인별로 레이어 그룹 생성 및 추가
+    groups = {'사고 원인': []}  # 사고 원인별 그룹을 담을 리스트를 생성합니다.
+
+    for i, color in color_dict_hex.items():
         type_accident = selected_national_park_accident[selected_national_park_accident['유형'] == i]
-        
-        # 해당 사고 원인의 색상 가져오기
-        accident_color = color_dict_hex[i]  # 사고 원인별로 정의된 색상 사용
-        
-        # 사고 원인별 레이어 그룹 생성
-        layer_group = folium.FeatureGroup(name=i)
-        
+        accident_color = color  # 사고 원인별로 정의된 색상 사용
+        feature_group = folium.FeatureGroup(name=i)  # 사고 원인별 FeatureGroup 생성
+
         # 사고 위치에 대한 CircleMarker 추가 및 툴팁 정보 설정
         for idx, row in type_accident.iterrows():
             tooltip_text = f"유형: {row['유형']}<br>사고 일자: {row['연월일']}"  # 툴팁 텍스트 정의
@@ -148,10 +148,14 @@ def make_pointplot(selected_national_park_accident,selected_npark_boundary):
                 fill_opacity=1.0,  # 내부 채움 불투명도
                 popup=popup_text,
                 tooltip=tooltip_text  # 툴팁 추가
-            ).add_to(layer_group)
+            ).add_to(feature_group)
         
-        # 레이어 그룹을 지도 객체에 추가
-        layer_group.add_to(m)
+        feature_group.add_to(m)  # FeatureGroup을 지도 객체에 추가
+        groups['사고 원인'].append(feature_group)  # 사고 원인별로 그룹에 FeatureGroup을 추가합니다.
+
+    # 사고 원인별 그룹을 그룹화된 레이어 컨트롤로 추가
+    GroupedLayerControl(groups=groups, collapsed=False, exclusive_groups=False).add_to(m)
+
     
     
     geojson_data = json.loads(selected_npark_boundary.to_json())
@@ -250,7 +254,7 @@ def make_hotspot_safetyplace(selected_national_park_accident,selected_npark_boun
         'HH': 'red',
         'HL': 'transparent',
         'LH': 'transparent',
-        'LL': 'transparent',
+        'LL': 'blue',
         'NS': 'transparent'
     }
 
@@ -264,7 +268,7 @@ def make_hotspot_safetyplace(selected_national_park_accident,selected_npark_boun
         }
     nbr_final.crs = "EPSG:4326"
     # 클러스터 레이어 추가
-    cluster_layer = folium.FeatureGroup(name='전체사고 핫스팟')
+    cluster_layer = folium.FeatureGroup(name='전체사고 핫스팟(빨강) 및 콜드스팟(파랑)')
     folium.GeoJson(
         nbr_final,
         style_function=style_function,
@@ -385,15 +389,15 @@ def make_hotspot_safetyplace(selected_national_park_accident,selected_npark_boun
 
     # 사건 유형에 대한 색상 딕셔너리
     color_dict = {
-        '실족': palette[0],
+        '실족ㆍ골절': palette[0],
         '기타': palette[1],
         '일시적고립': palette[2],
         '탈진경련': palette[3],
-        '부주의': palette[4],
+        '낙석ㆍ낙빙': palette[4],
         '추락': palette[5],
-        '심장문제': palette[6],
-        '해충 및 동물피해': palette[7],
-        '낙하물': palette[8],
+        '심장사고': palette[6],
+        '해충피해': palette[7],
+        '익수': palette[8],
     }
 
     # 컬러 팔레트에 해당하는 RGB 값을 hex 코드로 변환
@@ -471,7 +475,7 @@ def make_hotspot_heart(selected_national_park_accident,selected_npark_boundary,d
     gdf_polygon = gpd.GeoDataFrame(geometry=hexagon_polygons)
 
     # 심장문제만 필터링
-    selected_national_park_accident = selected_national_park_accident[selected_national_park_accident['유형']=='심장문제']
+    selected_national_park_accident = selected_national_park_accident[selected_national_park_accident['유형']=='심장사고']
     prices = gpd.sjoin(gdf_polygon, selected_national_park_accident[['geometry']], op='contains')
 
     # 각 geometry에 대한 카운트를 계산
@@ -533,7 +537,7 @@ def make_hotspot_heart(selected_national_park_accident,selected_npark_boundary,d
         'HH': 'red',
         'HL': 'transparent',
         'LH': 'transparent',
-        'LL': 'transparent',
+        'LL': 'blue',
         'NS': 'transparent'
     }
 
@@ -547,7 +551,7 @@ def make_hotspot_heart(selected_national_park_accident,selected_npark_boundary,d
         }
     nbr_final.crs = "EPSG:4326"
     # 클러스터 레이어 추가
-    cluster_layer = folium.FeatureGroup(name='심장사고 핫스팟')
+    cluster_layer = folium.FeatureGroup(name='심장사고 핫스팟(빨강) 및 콜드스팟(파랑)')
     folium.GeoJson(
         nbr_final,
         style_function=style_function,
@@ -612,22 +616,6 @@ def make_hotspot_heart(selected_national_park_accident,selected_npark_boundary,d
         ).add_to(df_AED_layer)
     df_AED_layer.add_to(m)
 
-
-    # 심장사고지점 추가
-    seoul_accident_fall_layer = folium.FeatureGroup(name='심장사고 사고지점')
-    for idx, row in selected_national_park_accident.iterrows():
-        folium.CircleMarker(
-            location=(row['위도_변환'], row['경도_변환']),
-            popup=row['사고장소'],
-            radius=3,
-            color='red',
-            fill=True,
-            fill_color='red',
-            fill_opacity=1
-        ).add_to(seoul_accident_fall_layer)
-    seoul_accident_fall_layer.add_to(m)
-
-
     def filter_hotspots_far_from_AED(nbr_final, df_AED, min_distance=100, cluster_label='HH'):
         # 안전쉼터 데이터를 GeoDataFrame으로 변환
         df_AED_gdf = gpd.GeoDataFrame(
@@ -682,15 +670,15 @@ def make_hotspot_heart(selected_national_park_accident,selected_npark_boundary,d
 
     # 사건 유형에 대한 색상 딕셔너리
     color_dict = {
-        '실족': palette[0],
+        '실족ㆍ골절': palette[0],
         '기타': palette[1],
         '일시적고립': palette[2],
         '탈진경련': palette[3],
-        '부주의': palette[4],
+        '낙석ㆍ낙빙': palette[4],
         '추락': palette[5],
-        '심장문제': palette[6],
-        '해충 및 동물피해': palette[7],
-        '낙하물': palette[8],
+        '심장사고': palette[6],
+        '해충피해': palette[7],
+        '익수': palette[8],
     }
 
     # 컬러 팔레트에 해당하는 RGB 값을 hex 코드로 변환
@@ -832,7 +820,7 @@ def make_hotspot_fall(selected_national_park_accident,selected_npark_boundary,df
         'HH': 'red',
         'HL': 'transparent',
         'LH': 'transparent',
-        'LL': 'transparent',
+        'LL': 'blue',
         'NS': 'transparent'
     }
 
@@ -846,7 +834,7 @@ def make_hotspot_fall(selected_national_park_accident,selected_npark_boundary,df
         }
     nbr_final.crs = "EPSG:4326"
     # 클러스터 레이어 추가
-    cluster_layer = folium.FeatureGroup(name='추락사고 핫스팟')
+    cluster_layer = folium.FeatureGroup(name='추락사고 핫스팟(빨강) 및 콜드스팟(파랑)')
     folium.GeoJson(
         nbr_final,
         style_function=style_function,
@@ -982,15 +970,15 @@ def make_hotspot_fall(selected_national_park_accident,selected_npark_boundary,df
 
     # 사건 유형에 대한 색상 딕셔너리
     color_dict = {
-        '실족': palette[0],
+        '실족ㆍ골절': palette[0],
         '기타': palette[1],
         '일시적고립': palette[2],
         '탈진경련': palette[3],
-        '부주의': palette[4],
+        '낙석ㆍ낙빙': palette[4],
         '추락': palette[5],
-        '심장문제': palette[6],
-        '해충 및 동물피해': palette[7],
-        '낙하물': palette[8],
+        '심장사고': palette[6],
+        '해충피해': palette[7],
+        '익수': palette[8],
     }
 
     # 컬러 팔레트에 해당하는 RGB 값을 hex 코드로 변환
@@ -1135,7 +1123,7 @@ with st.sidebar:
     ['전체','1월', '2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'],key='month',default='전체')
     age = st.multiselect('연령대 선택',
     ['전체','20대미만','20대', '30대','40대','50대', '60대', '70대 이상', '미상', '집단'],key='age',default='전체')
-    resolution = st.slider('기존 안전시설물-사고 핫스팟 이격거리 설정', 100, 1000, 500,100,key='distance')
+    resolution = st.slider('기존 안전시설물-사고 핫스팟 이격거리 설정', 100, 3000, 500,100,key='distance')
     st.write('핫스팟에서 벗어난 기존 설치 지점이 곧 핫스팟 내 안전시설물 우선설치 필요 지점 예측을 말해요.')
     button = st.button('분석 시작')
     image1 = './logo/국공.svg'
@@ -1328,19 +1316,37 @@ if button:
                 # 지도 생성
                 m2 = make_heatmap(selected_national_park_accident,selected_npark_boundary)
                 folium_static(m2)
-
+            
             with tab3:
-                # 지도 생성
-                m3 = make_hotspot_safetyplace(selected_national_park_accident_hotspot,selected_npark_boundary_hotspot,safety_place,st.session_state['distance'])
-                folium_static(m3)
+                col1 = st.columns((7, 3), gap='medium')
+                with col1[0]:
+                    # 지도 생성
+                    m3 = make_hotspot_safetyplace(selected_national_park_accident_hotspot,selected_npark_boundary_hotspot,safety_place,st.session_state['distance'])
+                    folium_static(m3)
+                with col1[1]:
+                    # Streamlit에 HTML 표시
+                    st.markdown(html, unsafe_allow_html=True)
+                
 
             with tab4:
-                # 지도 생성
-                m4 = make_hotspot_heart(selected_national_park_accident_hotspot,selected_npark_boundary_hotspot,df_AED,st.session_state['distance'])
-                folium_static(m4)
+                col1 = st.columns((7, 3), gap='medium')
+                with col1[0]:
+                    # 지도 생성
+                    m4 = make_hotspot_heart(selected_national_park_accident_hotspot,selected_npark_boundary_hotspot,df_AED,st.session_state['distance'])
+                    folium_static(m4)
+                with col1[1]:
+                    # Streamlit에 HTML 표시
+                    st.markdown(html, unsafe_allow_html=True)
+                
 
             with tab5:
-                # 지도 생성
-                m5 = make_hotspot_fall(selected_national_park_accident_hotspot,selected_npark_boundary_hotspot,df_fall,st.session_state['distance'])
-                folium_static(m5)
+                col1 = st.columns((7, 3), gap='medium')
+                with col1[0]:
+                    # 지도 생성
+                    m5 = make_hotspot_fall(selected_national_park_accident_hotspot,selected_npark_boundary_hotspot,df_fall,st.session_state['distance'])
+                    folium_static(m5)
+                with col1[1]:
+                    # Streamlit에 HTML 표시
+                    st.markdown(html, unsafe_allow_html=True)
+                
 
