@@ -419,7 +419,7 @@ def make_hotspot_safetyplace(selected_national_park_accident,selected_npark_boun
     except ValueError as e:
         st.error("사고 발생 건수가 적어 지도 분석이 어려워요. 다른 공원을 분석해 주세요!")
         
-    # 사고 원인별 색상 사전 정의
+       # 사고 원인별 색상 사전 정의
     palette = sns.color_palette('bright')
 
     # 사건 유형에 대한 색상 딕셔너리
@@ -438,16 +438,16 @@ def make_hotspot_safetyplace(selected_national_park_accident,selected_npark_boun
     # 컬러 팔레트에 해당하는 RGB 값을 hex 코드로 변환
     color_dict_hex = {key: mcolors.rgb2hex(value) for key, value in color_dict.items()}
     # 사고 원인별로 레이어 그룹 생성 및 추가
-    for i in color_dict_hex.keys(): # color_dict를 사용하여 반복
-        # 사고 원인별 데이터 필터링
+    # 사고 원인별로 레이어 그룹 생성 및 추가
+    accident_types = selected_national_park_accident['유형'].unique()
+   # 사고 원인별로 레이어 그룹 생성 및 추가
+    groups = {'사고 원인': []}  # 사고 원인별 그룹을 담을 리스트를 생성합니다.
+
+    for i, color in color_dict_hex.items():
         type_accident = selected_national_park_accident[selected_national_park_accident['유형'] == i]
-        
-        # 해당 사고 원인의 색상 가져오기
-        accident_color = color_dict_hex[i]  # 사고 원인별로 정의된 색상 사용
-        
-        # 사고 원인별 레이어 그룹 생성
-        layer_group = folium.FeatureGroup(name=i)
-        
+        accident_color = color  # 사고 원인별로 정의된 색상 사용
+        feature_group = folium.FeatureGroup(name=i)  # 사고 원인별 FeatureGroup 생성
+
         # 사고 위치에 대한 CircleMarker 추가 및 툴팁 정보 설정
         for idx, row in type_accident.iterrows():
             tooltip_text = f"유형: {row['유형']}<br>사고 일자: {row['연월일']}"  # 툴팁 텍스트 정의
@@ -461,10 +461,14 @@ def make_hotspot_safetyplace(selected_national_park_accident,selected_npark_boun
                 fill_opacity=1.0,  # 내부 채움 불투명도
                 popup=popup_text,
                 tooltip=tooltip_text  # 툴팁 추가
-            ).add_to(layer_group)
+            ).add_to(feature_group)
         
-        # 레이어 그룹을 지도 객체에 추가
-        layer_group.add_to(m)
+        feature_group.add_to(m)  # FeatureGroup을 지도 객체에 추가
+        groups['사고 원인'].append(feature_group)  # 사고 원인별로 그룹에 FeatureGroup을 추가합니다.
+
+    # 사고 원인별 그룹을 그룹화된 레이어 컨트롤로 추가
+    GroupedLayerControl(groups=groups, collapsed=False, exclusive_groups=False).add_to(m)
+    
     geojson_data = json.loads(selected_npark_boundary.to_json())
     folium.GeoJson(
         geojson_data,
@@ -742,7 +746,7 @@ def make_hotspot_heart(selected_national_park_accident,selected_npark_boundary,d
         out_hotspot_layer.add_to(m)
     except ValueError as e:
         st.error("심장 사고 발생 건수가 적어 지도 분석이 어려워요. 다른 공원을 분석해 주세요! ")
-    # 사고 원인별 색상 사전 정의
+       # 사고 원인별 색상 사전 정의
     palette = sns.color_palette('bright')
 
     # 사건 유형에 대한 색상 딕셔너리
@@ -761,16 +765,16 @@ def make_hotspot_heart(selected_national_park_accident,selected_npark_boundary,d
     # 컬러 팔레트에 해당하는 RGB 값을 hex 코드로 변환
     color_dict_hex = {key: mcolors.rgb2hex(value) for key, value in color_dict.items()}
     # 사고 원인별로 레이어 그룹 생성 및 추가
-    for i in color_dict_hex.keys(): # color_dict를 사용하여 반복
-        # 사고 원인별 데이터 필터링
+    # 사고 원인별로 레이어 그룹 생성 및 추가
+    accident_types = selected_national_park_accident['유형'].unique()
+   # 사고 원인별로 레이어 그룹 생성 및 추가
+    groups = {'사고 원인': []}  # 사고 원인별 그룹을 담을 리스트를 생성합니다.
+
+    for i, color in color_dict_hex.items():
         type_accident = selected_national_park_accident[selected_national_park_accident['유형'] == i]
-        
-        # 해당 사고 원인의 색상 가져오기
-        accident_color = color_dict_hex[i]  # 사고 원인별로 정의된 색상 사용
-        
-        # 사고 원인별 레이어 그룹 생성
-        layer_group = folium.FeatureGroup(name=i)
-        
+        accident_color = color  # 사고 원인별로 정의된 색상 사용
+        feature_group = folium.FeatureGroup(name=i)  # 사고 원인별 FeatureGroup 생성
+
         # 사고 위치에 대한 CircleMarker 추가 및 툴팁 정보 설정
         for idx, row in type_accident.iterrows():
             tooltip_text = f"유형: {row['유형']}<br>사고 일자: {row['연월일']}"  # 툴팁 텍스트 정의
@@ -784,10 +788,14 @@ def make_hotspot_heart(selected_national_park_accident,selected_npark_boundary,d
                 fill_opacity=1.0,  # 내부 채움 불투명도
                 popup=popup_text,
                 tooltip=tooltip_text  # 툴팁 추가
-            ).add_to(layer_group)
+            ).add_to(feature_group)
         
-        # 레이어 그룹을 지도 객체에 추가
-        layer_group.add_to(m)
+        feature_group.add_to(m)  # FeatureGroup을 지도 객체에 추가
+        groups['사고 원인'].append(feature_group)  # 사고 원인별로 그룹에 FeatureGroup을 추가합니다.
+
+    # 사고 원인별 그룹을 그룹화된 레이어 컨트롤로 추가
+    GroupedLayerControl(groups=groups, collapsed=False, exclusive_groups=False).add_to(m)
+    
     geojson_data = json.loads(selected_npark_boundary.to_json())
     folium.GeoJson(
         geojson_data,
@@ -1076,7 +1084,7 @@ def make_hotspot_fall(selected_national_park_accident,selected_npark_boundary,df
     except ValueError as e:
         st.error("추락사고 발생 건수가 적어 지도 분석이 어려워요. 다른 공원을 분석해 주세요! ")
 
-    # 사고 원인별 색상 사전 정의
+       # 사고 원인별 색상 사전 정의
     palette = sns.color_palette('bright')
 
     # 사건 유형에 대한 색상 딕셔너리
@@ -1095,16 +1103,16 @@ def make_hotspot_fall(selected_national_park_accident,selected_npark_boundary,df
     # 컬러 팔레트에 해당하는 RGB 값을 hex 코드로 변환
     color_dict_hex = {key: mcolors.rgb2hex(value) for key, value in color_dict.items()}
     # 사고 원인별로 레이어 그룹 생성 및 추가
-    for i in color_dict_hex.keys(): # color_dict를 사용하여 반복
-        # 사고 원인별 데이터 필터링
+    # 사고 원인별로 레이어 그룹 생성 및 추가
+    accident_types = selected_national_park_accident['유형'].unique()
+   # 사고 원인별로 레이어 그룹 생성 및 추가
+    groups = {'사고 원인': []}  # 사고 원인별 그룹을 담을 리스트를 생성합니다.
+
+    for i, color in color_dict_hex.items():
         type_accident = selected_national_park_accident[selected_national_park_accident['유형'] == i]
-        
-        # 해당 사고 원인의 색상 가져오기
-        accident_color = color_dict_hex[i]  # 사고 원인별로 정의된 색상 사용
-        
-        # 사고 원인별 레이어 그룹 생성
-        layer_group = folium.FeatureGroup(name=i)
-        
+        accident_color = color  # 사고 원인별로 정의된 색상 사용
+        feature_group = folium.FeatureGroup(name=i)  # 사고 원인별 FeatureGroup 생성
+
         # 사고 위치에 대한 CircleMarker 추가 및 툴팁 정보 설정
         for idx, row in type_accident.iterrows():
             tooltip_text = f"유형: {row['유형']}<br>사고 일자: {row['연월일']}"  # 툴팁 텍스트 정의
@@ -1118,10 +1126,14 @@ def make_hotspot_fall(selected_national_park_accident,selected_npark_boundary,df
                 fill_opacity=1.0,  # 내부 채움 불투명도
                 popup=popup_text,
                 tooltip=tooltip_text  # 툴팁 추가
-            ).add_to(layer_group)
+            ).add_to(feature_group)
         
-        # 레이어 그룹을 지도 객체에 추가
-        layer_group.add_to(m)
+        feature_group.add_to(m)  # FeatureGroup을 지도 객체에 추가
+        groups['사고 원인'].append(feature_group)  # 사고 원인별로 그룹에 FeatureGroup을 추가합니다.
+
+    # 사고 원인별 그룹을 그룹화된 레이어 컨트롤로 추가
+    GroupedLayerControl(groups=groups, collapsed=False, exclusive_groups=False).add_to(m)
+    
     geojson_data = json.loads(selected_npark_boundary.to_json())
     folium.GeoJson(
         geojson_data,
