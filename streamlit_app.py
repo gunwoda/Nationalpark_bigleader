@@ -891,10 +891,28 @@ def make_hotspot_fall(selected_national_park_accident,selected_npark_boundary,df
         name='지명표시', 
         overlay=True
     ).add_to(m)
+    # 클러스터 레이어 설정
+    cluster_colors_핫스팟 = {
+        'HH': 'red',
+        'HL': 'transparent',
+        'LH': 'transparent',
+        'LL': 'transparent',
+        'NS': 'transparent'
+    }
+
+    # 클러스터에 따른 스타일 설정 함수
+    def style_function_핫스팟(feature):
+        return {
+            'fillColor': cluster_colors_핫스팟.get(feature['properties']['Cluster_Label'], 'gray'),
+            'color': 'transparent',
+            'weight': 1,
+            'fillOpacity': 0.5
+        }
+    nbr_final.crs = "EPSG:4326"
 
     # 클러스터 레이어 설정
-    cluster_colors = {
-        'HH': 'red',
+    cluster_colors_콜드스팟 = {
+        'HH': 'transparent',
         'HL': 'transparent',
         'LH': 'transparent',
         'LL': 'blue',
@@ -902,25 +920,41 @@ def make_hotspot_fall(selected_national_park_accident,selected_npark_boundary,df
     }
 
     # 클러스터에 따른 스타일 설정 함수
-    def style_function(feature):
+    def style_function_콜드스팟(feature):
         return {
-            'fillColor': cluster_colors.get(feature['properties']['Cluster_Label'], 'gray'),
+            'fillColor': cluster_colors_콜드스팟.get(feature['properties']['Cluster_Label'], 'gray'),
             'color': 'transparent',
             'weight': 1,
             'fillOpacity': 0.5
         }
     nbr_final.crs = "EPSG:4326"
+
+
+
     # 클러스터 레이어 추가
-    cluster_layer = folium.FeatureGroup(name='추락사고 핫스팟(빨강) 및 콜드스팟(파랑)')
+    cluster_layer_핫스팟 = folium.FeatureGroup(name='추락사고 핫스팟')
     folium.GeoJson(
         nbr_final,
-        style_function=style_function,
+        style_function=style_function_핫스팟,
         tooltip=folium.GeoJsonTooltip(
             fields=['acc_counts'],
             aliases=['사고수:']
         )
-    ).add_to(cluster_layer)
-    cluster_layer.add_to(m)
+    ).add_to(cluster_layer_핫스팟)
+    cluster_layer_핫스팟.add_to(m)
+
+
+    # 클러스터 레이어 추가
+    cluster_layer_콜드스팟 = folium.FeatureGroup(name='추락사고 콜드스팟')
+    folium.GeoJson(
+        nbr_final,
+        style_function=style_function_콜드스팟,
+        tooltip=folium.GeoJsonTooltip(
+            fields=['acc_counts'],
+            aliases=['사고수:']
+        )
+    ).add_to(cluster_layer_콜드스팟)
+    cluster_layer_콜드스팟.add_to(m)
 
     # 탐방로 레이어 설정 및 추가
     trail_layer = folium.FeatureGroup(name='탐방로')
