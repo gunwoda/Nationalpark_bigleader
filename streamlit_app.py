@@ -250,8 +250,27 @@ def make_hotspot_safetyplace(selected_national_park_accident,selected_npark_boun
     ).add_to(m)
 
     # 클러스터 레이어 설정
-    cluster_colors = {
+    cluster_colors_핫스팟 = {
         'HH': 'red',
+        'HL': 'transparent',
+        'LH': 'transparent',
+        'LL': 'transparent',
+        'NS': 'transparent'
+    }
+
+    # 클러스터에 따른 스타일 설정 함수
+    def style_function_핫스팟(feature):
+        return {
+            'fillColor': cluster_colors_핫스팟.get(feature['properties']['Cluster_Label'], 'gray'),
+            'color': 'transparent',
+            'weight': 1,
+            'fillOpacity': 0.5
+        }
+    nbr_final.crs = "EPSG:4326"
+
+    # 클러스터 레이어 설정
+    cluster_colors_콜드스팟 = {
+        'HH': 'transparent',
         'HL': 'transparent',
         'LH': 'transparent',
         'LL': 'blue',
@@ -259,26 +278,42 @@ def make_hotspot_safetyplace(selected_national_park_accident,selected_npark_boun
     }
 
     # 클러스터에 따른 스타일 설정 함수
-    def style_function(feature):
+    def style_function_콜드스팟(feature):
         return {
-            'fillColor': cluster_colors.get(feature['properties']['Cluster_Label'], 'gray'),
+            'fillColor': cluster_colors_콜드스팟.get(feature['properties']['Cluster_Label'], 'gray'),
             'color': 'transparent',
             'weight': 1,
             'fillOpacity': 0.5
         }
     nbr_final.crs = "EPSG:4326"
+
+
+
     # 클러스터 레이어 추가
-    cluster_layer = folium.FeatureGroup(name='전체사고 핫스팟(빨강) 및 콜드스팟(파랑)')
+    cluster_layer_핫스팟 = folium.FeatureGroup(name='전체사고 핫스팟')
     folium.GeoJson(
         nbr_final,
-        style_function=style_function,
+        style_function=style_function_핫스팟,
         tooltip=folium.GeoJsonTooltip(
             fields=['acc_counts'],
             aliases=['사고수:']
         )
-    ).add_to(cluster_layer)
-    cluster_layer.add_to(m)
+    ).add_to(cluster_layer_핫스팟)
+    cluster_layer_핫스팟.add_to(m)
 
+
+    # 클러스터 레이어 추가
+    cluster_layer_콜드스팟 = folium.FeatureGroup(name='전체사고 콜드스팟')
+    folium.GeoJson(
+        nbr_final,
+        style_function=style_function_콜드스팟,
+        tooltip=folium.GeoJsonTooltip(
+            fields=['acc_counts'],
+            aliases=['사고수:']
+        )
+    ).add_to(cluster_layer_콜드스팟)
+    cluster_layer_콜드스팟.add_to(m)
+    
     # 안전쉼터 레이어 설정 및 추가
     shelter_layer = folium.FeatureGroup(name='안전쉼터')
     for idx, row in safety_place.iterrows():
