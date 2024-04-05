@@ -1416,7 +1416,7 @@ if button:
             st.markdown('#### 사고 현황판')
             tab1, tab2, tab3, tab4, tab5 = st.tabs(["사고 현황", "전체 사고 히트맵","안전쉼터위치 선정","AED위치 선정", "추락위험지역 선정"])
             with tab1:
-                col1 = st.columns((7, 3), gap='medium')
+                col1 = st.columns([8.1, 1.9])
                 with col1[0]:
                     # 지도 생성
                     m,color_dict = make_pointplot(selected_national_park_accident,selected_npark_boundary)
@@ -1441,7 +1441,7 @@ if button:
                 folium_static(m2)
             
             with tab3:
-                col1 = st.columns((7, 3), gap='medium')
+                col1 = st.columns([8.1, 1.9])
                 with col1[0]:
                     # 지도 생성
                     m3 = make_hotspot_safetyplace(selected_national_park_accident_hotspot,selected_npark_boundary_hotspot,safety_place,st.session_state['distance'])
@@ -1452,7 +1452,7 @@ if button:
                 
 
             with tab4:
-                col1 = st.columns((7, 3), gap='medium')
+                col1 = st.columns([8.1, 1.9])
                 with col1[0]:
                     # 지도 생성
                     m4 = make_hotspot_heart(selected_national_park_accident_hotspot,selected_npark_boundary_hotspot,df_AED,st.session_state['distance'])
@@ -1463,7 +1463,7 @@ if button:
                 
 
             with tab5:
-                col1 = st.columns((7, 3), gap='medium')
+                col1 = st.columns([8.1, 1.9])
                 with col1[0]:
                     # 지도 생성
                     m5 = make_hotspot_fall(selected_national_park_accident_hotspot,selected_npark_boundary_hotspot,df_fall,st.session_state['distance'])
