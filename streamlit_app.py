@@ -615,7 +615,7 @@ def make_hotspot_heart(selected_national_park_accident,selected_npark_boundary,d
         style_function=style_function_핫스팟,
         tooltip=folium.GeoJsonTooltip(
             fields=['acc_counts'],
-            aliases=['사고수:']
+            aliases=['심장사고수:']
         )
     ).add_to(cluster_layer_핫스팟)
     cluster_layer_핫스팟.add_to(m)
@@ -628,7 +628,7 @@ def make_hotspot_heart(selected_national_park_accident,selected_npark_boundary,d
         style_function=style_function_콜드스팟,
         tooltip=folium.GeoJsonTooltip(
             fields=['acc_counts'],
-            aliases=['사고수:']
+            aliases=['심장사고수:']
         )
     ).add_to(cluster_layer_콜드스팟)
     cluster_layer_콜드스팟.add_to(m)
@@ -938,7 +938,7 @@ def make_hotspot_fall(selected_national_park_accident,selected_npark_boundary,df
         style_function=style_function_핫스팟,
         tooltip=folium.GeoJsonTooltip(
             fields=['acc_counts'],
-            aliases=['사고수:']
+            aliases=['추락사고수:']
         )
     ).add_to(cluster_layer_핫스팟)
     cluster_layer_핫스팟.add_to(m)
@@ -951,7 +951,7 @@ def make_hotspot_fall(selected_national_park_accident,selected_npark_boundary,df
         style_function=style_function_콜드스팟,
         tooltip=folium.GeoJsonTooltip(
             fields=['acc_counts'],
-            aliases=['사고수:']
+            aliases=['추락사고수:']
         )
     ).add_to(cluster_layer_콜드스팟)
     cluster_layer_콜드스팟.add_to(m)
