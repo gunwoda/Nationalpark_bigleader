@@ -637,20 +637,6 @@ def make_hotspot_heart(selected_national_park_accident,selected_npark_boundary,d
     ).add_to(cluster_layer_콜드스팟)
     cluster_layer_콜드스팟.add_to(m)
 
-    # 심장문제 사고지점 추가
-    seoul_accident_heart_layer = folium.FeatureGroup(name='심장사고지검')
-    for idx, row in selected_national_park_accident.iterrows():
-        folium.CircleMarker(
-            location=(row['위도_변환'], row['경도_변환']),
-            radius=3,
-            color='red',
-            fill=True,
-            fill_color='red',
-            fill_opacity=1
-        ).add_to(seoul_accident_heart_layer)
-    seoul_accident_heart_layer.add_to(m)
-
-
     # 탐방로 레이어 설정 및 추가
     trail_layer = folium.FeatureGroup(name='탐방로')
     folium.GeoJson(
@@ -704,6 +690,20 @@ def make_hotspot_heart(selected_national_park_accident,selected_npark_boundary,d
             fill_opacity=1
         ).add_to(df_AED_layer)
     df_AED_layer.add_to(m)
+
+    # 심장문제 사고지점 추가
+    seoul_accident_heart_layer = folium.FeatureGroup(name='심장사고지검')
+    for idx, row in selected_national_park_accident.iterrows():
+        folium.CircleMarker(
+            location=(row['위도_변환'], row['경도_변환']),
+            radius=3,
+            color='red',
+            fill=True,
+            fill_color='red',
+            fill_opacity=1
+        ).add_to(seoul_accident_heart_layer)
+    seoul_accident_heart_layer.add_to(m)
+
 
     def filter_hotspots_far_from_AED(nbr_final, df_AED, min_distance=100, cluster_label='HH'):
         # 안전쉼터 데이터를 GeoDataFrame으로 변환
