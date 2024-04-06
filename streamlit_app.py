@@ -637,7 +637,18 @@ def make_hotspot_heart(selected_national_park_accident,selected_npark_boundary,d
     ).add_to(cluster_layer_콜드스팟)
     cluster_layer_콜드스팟.add_to(m)
 
-
+    # 심장문제 사고지점 추가
+    seoul_accident_heart_layer = folium.FeatureGroup(name='심장사고지검')
+    for idx, row in selected_national_park_accident.iterrows():
+        folium.CircleMarker(
+            location=(row['위도_변환'], row['경도_변환']),
+            radius=3,
+            color='red',
+            fill=True,
+            fill_color='red',
+            fill_opacity=1
+        ).add_to(seoul_accident_heart_layer)
+    seoul_accident_heart_layer.add_to(m)
 
 
     # 탐방로 레이어 설정 및 추가
@@ -1017,7 +1028,7 @@ def make_hotspot_fall(selected_national_park_accident,selected_npark_boundary,df
     fall_spot_layer.add_to(m)
 
     # 추락사 사고지점 추가
-    seoul_accident_fall_layer = folium.FeatureGroup(name='추락사 사고지점')
+    seoul_accident_fall_layer = folium.FeatureGroup(name='추락사고지점')
     for idx, row in selected_national_park_accident.iterrows():
         folium.CircleMarker(
             location=(row['위도_변환'], row['경도_변환']),
