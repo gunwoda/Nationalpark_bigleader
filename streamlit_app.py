@@ -640,9 +640,6 @@ def make_hotspot_heart(selected_national_park_accident,selected_npark_boundary,d
 
 
 
-
-
-
     # 탐방로 레이어 설정 및 추가
     trail_layer = folium.FeatureGroup(name='탐방로')
     folium.GeoJson(
@@ -1025,6 +1022,7 @@ def make_hotspot_fall(selected_national_park_accident,selected_npark_boundary,df
         folium.CircleMarker(
             location=(row['위도_변환'], row['경도_변환']),
             popup=row['사고장소'],
+            radius=3,
             color='red',
             fill=True,
             fill_color='red',
