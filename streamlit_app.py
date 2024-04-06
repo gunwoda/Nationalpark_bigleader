@@ -1024,7 +1024,7 @@ def make_hotspot_fall(selected_national_park_accident,selected_npark_boundary,df
     for idx, row in selected_national_park_accident.iterrows():
         folium.CircleMarker(
             location=(row['위도_변환'], row['경도_변환']),
-            popup=row['slope'],
+            popup=row['사고장소'],
             color='red',
             fill=True,
             fill_color='red',
