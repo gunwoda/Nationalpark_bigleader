@@ -1246,7 +1246,7 @@ with st.sidebar:
     ['전체','1월', '2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'],key='month',default='전체')
     age = st.multiselect('연령대 선택',
     ['전체','20대미만','20대', '30대','40대','50대', '60대', '70대 이상', '미상', '집단'],key='age',default='전체')
-    resolution = st.slider('기존 안전시설물-사고 핫스팟 이격거리(m) 설정', 100, 3000, 500,100,key='distance')
+    resolution = st.slider('사고 핫스팟 이격거리(m) 설정', 100, 3000, 500,100,key='distance')
     st.write('핫스팟에서 벗어난 기존 설치 지점이 곧 핫스팟 내 안전시설물 우선설치 필요 지점 예측을 말해요.')
     button = st.button('분석 시작')
     image1 = './logo/국공.svg'
