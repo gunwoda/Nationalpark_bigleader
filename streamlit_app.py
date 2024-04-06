@@ -692,7 +692,7 @@ def make_hotspot_heart(selected_national_park_accident,selected_npark_boundary,d
     df_AED_layer.add_to(m)
 
     # 심장문제 사고지점 추가
-    seoul_accident_heart_layer = folium.FeatureGroup(name='심장사고지검')
+    seoul_accident_heart_layer = folium.FeatureGroup(name='심장사고지점')
     for idx, row in selected_national_park_accident.iterrows():
         folium.CircleMarker(
             location=(row['위도_변환'], row['경도_변환']),
