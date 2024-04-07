@@ -700,7 +700,7 @@ def make_hotspot_heart(selected_national_park_accident,selected_npark_boundary,d
             fill=True,
             fill_color='red',
             fill_opacity=1,
-            popup=popup_text
+            tooltip=popup_text
         ).add_to(seoul_accident_heart_layer)
     seoul_accident_heart_layer.add_to(m)
 
