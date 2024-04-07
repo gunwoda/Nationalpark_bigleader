@@ -146,7 +146,6 @@ def make_pointplot(selected_national_park_accident,selected_npark_boundary):
                 fill=True,
                 fill_color=accident_color,
                 fill_opacity=1.0,  # 내부 채움 불투명도
-                popup=popup_text,
                 tooltip=tooltip_text  # 툴팁 추가
             ).add_to(feature_group)
         
@@ -459,7 +458,6 @@ def make_hotspot_safetyplace(selected_national_park_accident,selected_npark_boun
                 fill=True,
                 fill_color=accident_color,
                 fill_opacity=1.0,  # 내부 채움 불투명도
-                popup=popup_text,
                 tooltip=tooltip_text  # 툴팁 추가
             ).add_to(feature_group)
         
