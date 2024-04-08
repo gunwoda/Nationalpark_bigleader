@@ -128,7 +128,7 @@ def make_pointplot(selected_national_park_accident,selected_npark_boundary):
     # 사고 원인별로 레이어 그룹 생성 및 추가
     accident_types = selected_national_park_accident['유형'].unique()
    # 사고 원인별로 레이어 그룹 생성 및 추가
-    groups = {'사고 원인': []}  # 사고 원인별 그룹을 담을 리스트를 생성합니다.
+    groups = {'사고 유형': []}  # 사고 원인별 그룹을 담을 리스트를 생성합니다.
 
     for i, color in color_dict_hex.items():
         type_accident = selected_national_park_accident[selected_national_park_accident['유형'] == i]
@@ -149,7 +149,7 @@ def make_pointplot(selected_national_park_accident,selected_npark_boundary):
             ).add_to(feature_group)
         
         feature_group.add_to(m)  # FeatureGroup을 지도 객체에 추가
-        groups['사고 원인'].append(feature_group)  # 사고 원인별로 그룹에 FeatureGroup을 추가합니다.
+        groups['사고 유형'].append(feature_group)  # 사고 원인별로 그룹에 FeatureGroup을 추가합니다.
 
     # 사고 원인별 그룹을 그룹화된 레이어 컨트롤로 추가
     GroupedLayerControl(groups=groups, collapsed=False, exclusive_groups=False).add_to(m)
@@ -439,7 +439,7 @@ def make_hotspot_safetyplace(selected_national_park_accident,selected_npark_boun
     # 사고 원인별로 레이어 그룹 생성 및 추가
     accident_types = selected_national_park_accident['유형'].unique()
    # 사고 원인별로 레이어 그룹 생성 및 추가
-    groups = {'사고 원인': []}  # 사고 원인별 그룹을 담을 리스트를 생성합니다.
+    groups = {'사고 유형': []}  # 사고 원인별 그룹을 담을 리스트를 생성합니다.
 
     for i, color in color_dict_hex.items():
         type_accident = selected_national_park_accident[selected_national_park_accident['유형'] == i]
@@ -460,7 +460,7 @@ def make_hotspot_safetyplace(selected_national_park_accident,selected_npark_boun
             ).add_to(feature_group)
         
         feature_group.add_to(m)  # FeatureGroup을 지도 객체에 추가
-        groups['사고 원인'].append(feature_group)  # 사고 원인별로 그룹에 FeatureGroup을 추가합니다.
+        groups['사고 유형'].append(feature_group)  # 사고 원인별로 그룹에 FeatureGroup을 추가합니다.
 
     # 사고 원인별 그룹을 그룹화된 레이어 컨트롤로 추가
     GroupedLayerControl(groups=groups, collapsed=False, exclusive_groups=False).add_to(m)
@@ -774,7 +774,7 @@ def make_hotspot_heart(selected_national_park_accident,selected_npark_boundary,d
 #     # 사고 원인별로 레이어 그룹 생성 및 추가
 #     accident_types = selected_national_park_accident['유형'].unique()
 #    # 사고 원인별로 레이어 그룹 생성 및 추가
-#     groups = {'사고 원인': []}  # 사고 원인별 그룹을 담을 리스트를 생성합니다.
+#     groups = {'사고 유형': []}  # 사고 원인별 그룹을 담을 리스트를 생성합니다.
 
 #     for i, color in color_dict_hex.items():
 #         type_accident = selected_national_park_accident[selected_national_park_accident['유형'] == i]
@@ -797,7 +797,7 @@ def make_hotspot_heart(selected_national_park_accident,selected_npark_boundary,d
 #             ).add_to(feature_group)
         
 #         feature_group.add_to(m)  # FeatureGroup을 지도 객체에 추가
-#         groups['사고 원인'].append(feature_group)  # 사고 원인별로 그룹에 FeatureGroup을 추가합니다.
+#         groups['사고 유형'].append(feature_group)  # 사고 원인별로 그룹에 FeatureGroup을 추가합니다.
 
 #     # 사고 원인별 그룹을 그룹화된 레이어 컨트롤로 추가
 #     GroupedLayerControl(groups=groups, collapsed=False, exclusive_groups=False).add_to(m)
