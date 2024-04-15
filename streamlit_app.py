@@ -25,6 +25,8 @@ import matplotlib.colors as mcolors
 from folium import IFrame
 from folium.plugins import Fullscreen, FloatImage
 from folium.plugins import GroupedLayerControl
+from PIL import Image
+import io
 
 #######################
 # Page configuration
@@ -1254,8 +1256,8 @@ with st.sidebar:
     ['전체','1월', '2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'],key='month',default='전체')
     age = st.multiselect('연령대 선택',
     ['전체','20대미만','20대', '30대','40대','50대', '60대', '70대 이상', '미상', '집단'],key='age',default='전체')
-    resolution = st.slider('기존 안전시설물과 사고 핫스팟간의 이격거리(m) 설정', 100, 3000, 500,100,key='distance')
-    st.write('핫스팟에서 설정한 이격거리(m) 보다 벗어난 기존 설치 지점이 곧 핫스팟 내 안전시설물 우선설치 필요 지점 예측을 말해요.')
+    resolution = st.slider('기존 안전시설물과 사고 핫스팟 중심점 간의 거리(m) 설정', 100, 3000, 500,100,key='distance')
+    st.write('핫스팟 중심점과의 이격거리(m)를 초과한 지점이 곧 핫스팟 내 안전시설물 우선설치 필요 지점 예측을 말해요.')
     button = st.button('분석 시작')
     image1 = './logo/국공.svg'
     image2 = './logo/Bigleader.png'
@@ -1302,14 +1304,14 @@ if not button:
         text-align: center;
         margin-top: 30px;
         color: #6A877F; /* 부제목 색상 */
-        text-shadow: 2px 2px 4px #000000; /* 제목에 그림자 효과 추가 */
+
     }
     .subtitle {
         font-size: 28px; /* 부제목 크기 조정 */
         text-align: center;
         margin-bottom: 30px;
         color: #6A877F; /* 부제목 색상 */
-        text-shadow: 1px 1px 2px #000000; /* 부제목에 그림자 효과 추가 */
+ 
     }
     .content {
         font-family: 'Noto Sans KR', sans-serif; /* 본문 글씨체 변경 */
@@ -1331,9 +1333,9 @@ if not button:
 
     st.markdown("""
     <div class="content">
-        <p>국립공원 내 안전사고를 분석하고 효과적인 예방대책을 마련하는 페이지입니다. 
-왼쪽 사이드바에는 사고 패턴을 파악할 수 있도록 다양한 시각화 도구와 분석 결과를 제공합니다. </p>
-        <p>좌측 사이드바를 클릭하여 분석 자료를 확인하세요.</p>
+        <p>국립공원 내 안전사고를 분석하고 효과적인 예방대책을 마련하는 페이지입니다. <br>
+        좌측 사이드바에서는 사고 패턴을 파악할 수 있도록 다양한 시각화 도구와 분석 결과를 제공합니다.</p>
+        <p>좌측 사이드바를 클릭하여 분석 자료를 확인해보세요.</p>
     </div>
     """, unsafe_allow_html=True)
    # CSS 스타일
@@ -1413,12 +1415,14 @@ if button:
             fig1 = plot_donut_chart(selected_national_park_accident)
             st.plotly_chart(fig1, use_container_width=True)
             st.markdown("""
-                <div class="content">
-                    <p>“ 차트 활용법 <br>
+                    <div class="content">
+                    <p><b>차트 활용법</b><br>
                     1. 차트의 경우 오른쪽 상단에 마우스를 올려둘 시 전체화면으로 확대 버튼이 떠요. <br>
-                    2. 차트 클릭시 인터렉티브하게 반응해요.(사고 건수 파악 가능)  ” </p>
-                </div>
-                """, unsafe_allow_html=True)
+                    2. 혹은 좌측 사이드바를 닫으시면 확대된 그래프를 만나보실 수 있어요.<br>
+                    3. 차트 영역마다 클릭 시 인터렉티브하게 반응해요.(사고 건수 파악 가능) </p>
+                    </div>
+                    """, unsafe_allow_html=True)
+
 
         with col[1]:
             st.markdown('#### 사고 현황판')
@@ -1429,17 +1433,30 @@ if button:
                     # 지도 생성
                     m,color_dict = make_pointplot(selected_national_park_accident,selected_npark_boundary)
                     folium_static(m)
-                with col1[1]:
-                    # 데이터 준비
-                    df = pd.DataFrame(list(color_dict.items()), columns=['유형', '범례'])
-                    # 색상을 나타내는 HTML 코드로 셀을 변환
-                    df['범례'] = df['범례'].apply(lambda x: f'<div style="width: 26px; height: 20px; background-color: {x};"></div>')
 
-                    # DataFrame을 HTML로 변환
-                    html = df.to_html(escape=False,index=False)
+                    # 이미지를 바이트로 변환
+                    image = Image.open("./legend.png")  # 이미지 경로를 수정하세요
+                    img_byte_arr = io.BytesIO()
+                    image.save(img_byte_arr, format='PNG')
+                    img_byte_arr = img_byte_arr.getvalue()
+                    st.image(img_byte_arr, use_column_width=True)
 
-                    # Streamlit에 HTML 표시
-                    st.markdown(html, unsafe_allow_html=True)
+                    st.markdown("""<div class="content">
+                    <p> → 좌측 사이드바를 닫으시면 범례 정보를 더 큰 글씨로 만나보실 수 있어요.
+                    </div>
+                    """,unsafe_allow_html=True)
+
+                    #with col1[1]:
+                    # # 데이터 준비
+                    # df = pd.DataFrame(list(color_dict.items()), columns=['유형', '범례'])
+                    # # 색상을 나타내는 HTML 코드로 셀을 변환
+                    # df['범례'] = df['범례'].apply(lambda x: f'<div style="width: 26px; height: 20px; background-color: {x};"></div>')
+
+                    # # DataFrame을 HTML로 변환
+                    # html = df.to_html(escape=False,index=False)
+
+                    # # Streamlit에 HTML 표시
+                    # st.markdown(html, unsafe_allow_html=True)
 
 
             
@@ -1454,9 +1471,10 @@ if button:
                     # 지도 생성
                     m3 = make_hotspot_safetyplace(selected_national_park_accident_hotspot,selected_npark_boundary_hotspot,safety_place,st.session_state['distance'])
                     folium_static(m3)
-                with col1[1]:
-                    # Streamlit에 HTML 표시
-                    st.markdown(html, unsafe_allow_html=True)
+                    st.image(img_byte_arr, use_column_width=True)
+                # with col1[1]:
+                #     # Streamlit에 HTML 표시
+                #     st.markdown(html, unsafe_allow_html=True)
                 
 
             with tab4:
@@ -1465,9 +1483,9 @@ if button:
                     # 지도 생성
                     m4 = make_hotspot_heart(selected_national_park_accident_hotspot,selected_npark_boundary_hotspot,df_AED,st.session_state['distance'])
                     folium_static(m4)
-                with col1[1]:
-                    # Streamlit에 HTML 표시
-                    st.markdown(html, unsafe_allow_html=True)
+                # with col1[1]:
+                #     # Streamlit에 HTML 표시
+                #     st.markdown(html, unsafe_allow_html=True)
                 
 
             with tab5:
@@ -1476,8 +1494,8 @@ if button:
                     # 지도 생성
                     m5 = make_hotspot_fall(selected_national_park_accident_hotspot,selected_npark_boundary_hotspot,df_fall,st.session_state['distance'])
                     folium_static(m5)
-                with col1[1]:
-                    # Streamlit에 HTML 표시
-                    st.markdown(html, unsafe_allow_html=True)
+                # with col1[1]:
+                #     # Streamlit에 HTML 표시
+                #     st.markdown(html, unsafe_allow_html=True)
                 
 
