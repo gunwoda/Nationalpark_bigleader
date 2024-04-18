@@ -27,6 +27,8 @@ from folium.plugins import Fullscreen, FloatImage
 from folium.plugins import GroupedLayerControl
 from PIL import Image
 import io
+from branca.element import Template, MacroElement
+import branca
 
 #######################
 # Page configuration
@@ -35,6 +37,7 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded")
 #######################
+
 
 # Plots
 def find_boundary(npark_boundary,npark_name):
@@ -82,8 +85,10 @@ def v_world(selected_national_park_accident):
     ).add_to(m)
     return m
 
+
 def make_pointplot(selected_national_park_accident,selected_npark_boundary):    
 
+    
     map_center_lat, map_center_lon = find_center_latitudes_longtitudes(selected_national_park_accident)
 
     m = folium.Map(location=[map_center_lat, map_center_lon], zoom_start=12)
@@ -111,7 +116,7 @@ def make_pointplot(selected_national_park_accident,selected_npark_boundary):
     # 사고 원인별 색상 사전 정의
     palette = sns.color_palette('bright')
 
-    # 사건 유형에 대한 색상 딕셔너리
+    # 사건 원인에 대한 색상 딕셔너리
     color_dict = {
         '실족ㆍ골절': palette[0],
         '기타': palette[1],
@@ -126,7 +131,7 @@ def make_pointplot(selected_national_park_accident,selected_npark_boundary):
 
     # 컬러 팔레트에 해당하는 RGB 값을 hex 코드로 변환
     color_dict_hex = {key: mcolors.rgb2hex(value) for key, value in color_dict.items()}
-   # 사고 원인별로 레이어 그룹 생성 및 추가
+# 사고 원인별로 레이어 그룹 생성 및 추가
     groups = {'사고 원인': []}  # 사고 원인별 그룹을 담을 리스트를 생성합니다.
         # 모든 사고 원인을 담을 FeatureGroup을 생성합니다.
     all_accidents_group = folium.FeatureGroup(name="전체 사고 원인")
@@ -170,10 +175,116 @@ def make_pointplot(selected_national_park_accident,selected_npark_boundary):
     ).add_to(m)
 
     folium.LayerControl().add_to(m)
+
+
+    template = """
+    {% macro html(this, kwargs) %}
+
+    <!doctype html>
+    <html lang="en">
+    <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>jQuery UI Draggable - Default functionality</title>
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+
+    <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    
+    <script>
+    $( function() {
+        $( "#maplegend" ).draggable({
+                        start: function (event, ui) {
+                            $(this).css({
+                                right: "auto",
+                                top: "auto",
+                                bottom: "auto"
+                            });
+                        }
+                    });
+    });
+
+    </script>
+    </head>
+    <body>
+
+    
+    <div id='maplegend' class='maplegend' 
+        style='position: absolute; z-index:9999; border:2px grey; background-color:rgba(255, 255, 255, 0.8);
+        border-radius:6px; padding: 10px; font-size:13px; left: 10px; bottom: 10px;'>
+        
+    <div class='legend-title'>사고원인 범례</div>
+    <div class='legend-scale'>
+    <ul class='legend-labels'>
+        <li><span style='background:blue;opacity:1;'></span><strong>실족ㆍ골절</strong></li>
+        <li><span style='background:#FC9238;opacity:1;'></span><strong>기타</strong></li>
+        <li><span style='background:#89C461;opacity:1;'></span><strong>일시적고립</strong></li>
+        <li><span style='background:#C82E23;opacity:1;'></span><strong>탈진경련</strong></li>
+        <li><span style='background:#8E44AD;opacity:1;'></span><strong>낙석ㆍ낙빙</strong></li>
+        <li><span style='background:brown;opacity:1;'></span><strong>추락</strong></li>
+        <li><span style='background:#E05EC6;opacity:1;'></span><strong>심장사고</strong></li>
+        <li><span style='background:gray;opacity:1;'></span><strong>해충피해</strong></li>
+        <li><span style='background:#F4D03F;opacity:1;'></span><strong>익수</strong></li>
+
+
+
+
+    </ul>
+    </div>
+    </div>
+    
+    </body>
+    </html>
+
+    <style type='text/css'>
+    .maplegend .legend-title {
+        text-align: left;
+        margin-bottom: 5px;
+        font-weight: bold;
+        font-size: 90%;
+        }
+    .maplegend .legend-scale ul {
+        margin: 0;
+        margin-bottom: 5px;
+        padding: 0;
+        float: left;
+        list-style: none;
+        }
+    .maplegend .legend-scale ul li {
+        font-size: 80%;
+        list-style: none;
+        margin-left: 0;
+        line-height: 18px;
+        margin-bottom: 2px;
+        }
+    .maplegend ul.legend-labels li span {
+        display: block;
+        float: left;
+        height: 16px;
+        width: 30px;
+        margin-right: 5px;
+        margin-left: 0;
+        border: 1px solid #999;
+        }
+    .maplegend .legend-source {
+        font-size: 80%;
+        color: #777;
+        clear: both;
+        }
+    .maplegend a {
+        color: #777;
+        }
+    </style>
+    {% endmacro %}"""
+
+    # Add the legend to the map
+    macro = MacroElement()
+    macro._template = Template(template)
+    macro.add_to(m)
+
+
+
     return m,color_dict_hex
-
-
-
 
 
 
@@ -343,19 +454,20 @@ def make_hotspot_safetyplace(selected_national_park_accident,selected_npark_boun
     ).add_to(trail_layer)
     trail_layer.add_to(m)
 
-    # 위치표지판 레이어 설정 및 추가
-    sign_layer = folium.FeatureGroup(name='다목적위치표지판')
-    for idx, row in sign_place.iterrows():
-        folium.CircleMarker(
-            location=(row['위도'], row['경도']),
-            popup=row['위치'],
-            radius=3,
-            color='orange',
-            fill=True,
-            fill_color='orange',
-            fill_opacity=0.8
-        ).add_to(sign_layer)
-    sign_layer.add_to(m)
+    # # 위치표지판 레이어 설정 및 추가
+    # sign_layer = folium.FeatureGroup(name='다목적위치표지판')
+    # for idx, row in sign_place.iterrows():
+    #     folium.CircleMarker(
+    #         location=(row['위도'], row['경도']),
+    #         popup=row['위치'],
+    #         radius=3,
+    #         color='orange',
+    #         fill=True,
+    #         fill_color='orange',
+    #         fill_opacity=0.8
+    #     ).add_to(sign_layer)
+    # sign_layer.add_to(m)
+
 
     geojson_data = json.loads(selected_npark_boundary.to_json())
     folium.GeoJson(
@@ -483,6 +595,112 @@ def make_hotspot_safetyplace(selected_national_park_accident,selected_npark_boun
     ).add_to(m)
     # 레이어 컨트롤 추가하여 사용자가 레이어 선택 가능하게 함
     folium.LayerControl().add_to(m)
+
+
+    template = """
+    {% macro html(this, kwargs) %}
+
+    <!doctype html>
+    <html lang="en">
+    <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>jQuery UI Draggable - Default functionality</title>
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+
+    <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    
+    <script>
+    $( function() {
+        $( "#maplegend" ).draggable({
+                        start: function (event, ui) {
+                            $(this).css({
+                                right: "auto",
+                                top: "auto",
+                                bottom: "auto"
+                            });
+                        }
+                    });
+    });
+
+    </script>
+    </head>
+    <body>
+
+    
+    <div id='maplegend' class='maplegend' 
+        style='position: absolute; z-index:9999; border:2px grey; background-color:rgba(255, 255, 255, 0.8);
+        border-radius:6px; padding: 10px; font-size:13px; left: 10px; bottom: 10px;'>
+        
+    <div class='legend-title'>사고원인 범례</div>
+    <div class='legend-scale'>
+    <ul class='legend-labels'>
+        <li><span style='background:#3D5AFF;opacity:1;'></span><strong>실족ㆍ골절</strong></li>
+        <li><span style='background:#E28332;opacity:1;'></span><strong>기타</strong></li>
+        <li><span style='background:#89C461;opacity:1;'></span><strong>일시적고립</strong></li>
+        <li><span style='background:#C82E23;opacity:1;'></span><strong>탈진경련</strong></li>
+        <li><span style='background:#8E44AD;opacity:1;'></span><strong>낙석ㆍ낙빙</strong></li>
+        <li><span style='background:brown;opacity:1;'></span><strong>추락</strong></li>
+        <li><span style='background:#E05EC6;opacity:1;'></span><strong>심장사고</strong></li>
+        <li><span style='background:gray;opacity:1;'></span><strong>해충피해</strong></li>
+        <li><span style='background:#F4D03F;opacity:1;'></span><strong>익수</strong></li>
+
+
+
+
+    </ul>
+    </div>
+    </div>
+    
+    </body>
+    </html>
+
+    <style type='text/css'>
+    .maplegend .legend-title {
+        text-align: left;
+        margin-bottom: 5px;
+        font-weight: bold;
+        font-size: 90%;
+        }
+    .maplegend .legend-scale ul {
+        margin: 0;
+        margin-bottom: 5px;
+        padding: 0;
+        float: left;
+        list-style: none;
+        }
+    .maplegend .legend-scale ul li {
+        font-size: 80%;
+        list-style: none;
+        margin-left: 0;
+        line-height: 18px;
+        margin-bottom: 2px;
+        }
+    .maplegend ul.legend-labels li span {
+        display: block;
+        float: left;
+        height: 16px;
+        width: 30px;
+        margin-right: 5px;
+        margin-left: 0;
+        border: 1px solid #999;
+        }
+    .maplegend .legend-source {
+        font-size: 80%;
+        color: #777;
+        clear: both;
+        }
+    .maplegend a {
+        color: #777;
+        }
+    </style>
+    {% endmacro %}"""
+
+    # Add the legend to the map
+    macro = MacroElement()
+    macro._template = Template(template)
+    macro.add_to(m)
     return m
 
 
@@ -654,19 +872,19 @@ def make_hotspot_heart(selected_national_park_accident,selected_npark_boundary,d
     ).add_to(trail_layer)
     trail_layer.add_to(m)
 
-    # 위치표지판 레이어 설정 및 추가
-    sign_layer = folium.FeatureGroup(name='다목적위치표지판')
-    for idx, row in sign_place.iterrows():
-        folium.CircleMarker(
-            location=(row['위도'], row['경도']),
-            popup=row['위치'],
-            radius=3,
-            color='orange',
-            fill=True,
-            fill_color='orange',
-            fill_opacity=0.8
-        ).add_to(sign_layer)
-    sign_layer.add_to(m)
+    # # 위치표지판 레이어 설정 및 추가
+    # sign_layer = folium.FeatureGroup(name='다목적위치표지판')
+    # for idx, row in sign_place.iterrows():
+    #     folium.CircleMarker(
+    #         location=(row['위도'], row['경도']),
+    #         popup=row['위치'],
+    #         radius=3,
+    #         color='orange',
+    #         fill=True,
+    #         fill_color='orange',
+    #         fill_opacity=0.8
+    #     ).add_to(sign_layer)
+    # sign_layer.add_to(m)
 
     geojson_data = json.loads(selected_npark_boundary.to_json())
     folium.GeoJson(
@@ -991,19 +1209,19 @@ def make_hotspot_fall(selected_national_park_accident,selected_npark_boundary,df
     ).add_to(trail_layer)
     trail_layer.add_to(m)
 
-    # 위치표지판 레이어 설정 및 추가
-    sign_layer = folium.FeatureGroup(name='다목적위치표지판')
-    for idx, row in sign_place.iterrows():
-        folium.CircleMarker(
-            location=(row['위도'], row['경도']),
-            popup=row['위치'],
-            radius=3,
-            color='orange',
-            fill=True,
-            fill_color='orange',
-            fill_opacity=0.8
-        ).add_to(sign_layer)
-    sign_layer.add_to(m)
+    # # 위치표지판 레이어 설정 및 추가
+    # sign_layer = folium.FeatureGroup(name='다목적위치표지판')
+    # for idx, row in sign_place.iterrows():
+    #     folium.CircleMarker(
+    #         location=(row['위도'], row['경도']),
+    #         popup=row['위치'],
+    #         radius=3,
+    #         color='orange',
+    #         fill=True,
+    #         fill_color='orange',
+    #         fill_opacity=0.8
+    #     ).add_to(sign_layer)
+    # sign_layer.add_to(m)
 
     geojson_data = json.loads(selected_npark_boundary.to_json())
     folium.GeoJson(
@@ -1228,17 +1446,34 @@ def plot_donut_chart(df):
     # value_counts를 사용해 각 카테고리의 빈도수 계산
     value_counts = df['유형'].value_counts()
 
+    # 각 카테고리에 대한 색상을 지정합니다.
+    colors = {
+        '실족ㆍ골절': '#3D5AFF',
+        '기타': '#FC9238',
+        '일시적고립': '#89C461',
+        '탈진경련': '#C82E23',
+        '낙석ㆍ낙빙': '#8E44AD',
+        '추락': 'brown',
+        '심장사고': '#E05EC6',
+        '해충피해': 'gray',
+        '익수': '#F4D03F'
+    }
+
+    # 각 카테고리에 대한 색상 리스트 생성
+    category_colors = [colors[category] for category in value_counts.index]
+
     # 도넛 차트를 위한 데이터와 레이아웃 설정
-    fig = go.Figure(data=[go.Pie(labels=value_counts.index, values=value_counts, hole=.3)])
+    fig = go.Figure(data=[go.Pie(labels=value_counts.index, values=value_counts, hole=.3, marker=dict(colors=category_colors))])
     
     # 차트 제목 및 레이아웃 설정
     fig.update_layout(
-        title_text='사고 유형 분포',
+        title_text='사고 원인 분포도',
         # 글씨 크기 조정
         title_font_size=20,
         legend_title_font_size=12,
         font=dict(size=18)
     )
+
 
     return fig
 
@@ -1421,34 +1656,33 @@ if button:
             st.markdown("""
                     <div class="content">
                     <p><b>차트 활용법</b><br>
-                    1. 차트의 경우 오른쪽 상단에 마우스를 올려둘 시 전체화면으로 확대 버튼이 떠요. <br>
-                    2. 혹은 좌측 사이드바를 닫으시면 확대된 그래프를 만나보실 수 있어요.<br>
-                    3. 차트 영역마다 클릭 시 인터렉티브하게 반응해요.(사고 건수 파악 가능) </p>
+                    1. 좌측 사이드바를 닫고 확대된 그래프를 만나보세요.<br>
+                    2. 차트를 클릭하여 사고건수를 확인해보세요.</p>
                     </div>
                     """, unsafe_allow_html=True)
 
 
         with col[1]:
             st.markdown('#### 사고 현황판')
-            tab1, tab2, tab3, tab4, tab5 = st.tabs(["사고 현황", "전체 사고 히트맵","안전쉼터위치 선정","AED위치 선정", "추락위험지역 선정"])
+            tab1, tab2, tab3, tab4, tab5 = st.tabs(["사고 현황", "전체사고 히트맵","안전쉼터위치 선정","AED위치 선정", "추락위험지역 선정"])
             with tab1:
-                col1 = st.columns([8.1, 1.9])
-                with col1[0]:
+                #col1 = st.columns([8.1, 1.9])
+                #with col1[0]:
                     # 지도 생성
-                    m,color_dict = make_pointplot(selected_national_park_accident,selected_npark_boundary)
-                    folium_static(m)
+                m,color_dict = make_pointplot(selected_national_park_accident,selected_npark_boundary)
+                folium_static(m)
 
                     # 이미지를 바이트로 변환
-                    image = Image.open("./legend.png")  # 이미지 경로를 수정하세요
-                    img_byte_arr = io.BytesIO()
-                    image.save(img_byte_arr, format='PNG')
-                    img_byte_arr = img_byte_arr.getvalue()
-                    st.image(img_byte_arr, use_column_width=True)
+                    #image = Image.open("./legend.png")  # 이미지 경로를 수정하세요
+                    #img_byte_arr = io.BytesIO()
+                    #image.save(img_byte_arr, format='PNG')
+                    #img_byte_arr = img_byte_arr.getvalue()
+                    #st.image(img_byte_arr, use_column_width=True)
 
-                    st.markdown("""<div class="content">
-                    <p> → 좌측 사이드바를 닫으시면 범례 정보를 더 큰 글씨로 만나보실 수 있어요.
-                    </div>
-                    """,unsafe_allow_html=True)
+                    #st.markdown("""<div class="content">
+                    #<p> → 좌측 사이드바를 닫으시면 범례 정보를 더 큰 글씨로 만나보실 수 있어요.
+                    #</div>
+                    #""",unsafe_allow_html=True)
 
                     #with col1[1]:
                     # # 데이터 준비
@@ -1470,34 +1704,34 @@ if button:
                 folium_static(m2)
             
             with tab3:
-                col1 = st.columns([8.1, 1.9])
-                with col1[0]:
+                #col1 = st.columns([8.1, 1.9])
+                #with col1[0]:
                     # 지도 생성
-                    m3 = make_hotspot_safetyplace(selected_national_park_accident_hotspot,selected_npark_boundary_hotspot,safety_place,st.session_state['distance'])
-                    folium_static(m3)
-                    st.image(img_byte_arr, use_column_width=True)
+                m3 = make_hotspot_safetyplace(selected_national_park_accident_hotspot,selected_npark_boundary_hotspot,safety_place,st.session_state['distance'])
+                folium_static(m3)
+                    #st.image(img_byte_arr, use_column_width=True)
                 # with col1[1]:
                 #     # Streamlit에 HTML 표시
                 #     st.markdown(html, unsafe_allow_html=True)
                 
 
             with tab4:
-                col1 = st.columns([8.1, 1.9])
-                with col1[0]:
+                #col1 = st.columns([8.1, 1.9])
+                #with col1[0]:
                     # 지도 생성
-                    m4 = make_hotspot_heart(selected_national_park_accident_hotspot,selected_npark_boundary_hotspot,df_AED,st.session_state['distance'])
-                    folium_static(m4)
+                m4 = make_hotspot_heart(selected_national_park_accident_hotspot,selected_npark_boundary_hotspot,df_AED,st.session_state['distance'])
+                folium_static(m4)
                 # with col1[1]:
                 #     # Streamlit에 HTML 표시
                 #     st.markdown(html, unsafe_allow_html=True)
                 
 
             with tab5:
-                col1 = st.columns([8.1, 1.9])
-                with col1[0]:
+                #col1 = st.columns([8.1, 1.9])
+                #with col1[0]:
                     # 지도 생성
-                    m5 = make_hotspot_fall(selected_national_park_accident_hotspot,selected_npark_boundary_hotspot,df_fall,st.session_state['distance'])
-                    folium_static(m5)
+                m5 = make_hotspot_fall(selected_national_park_accident_hotspot,selected_npark_boundary_hotspot,df_fall,st.session_state['distance'])
+                folium_static(m5)
                 # with col1[1]:
                 #     # Streamlit에 HTML 표시
                 #     st.markdown(html, unsafe_allow_html=True)
