@@ -218,10 +218,10 @@ def make_pointplot(selected_national_park_accident,selected_npark_boundary):
     <ul class='legend-labels'>
         <li><span style='background:blue;opacity:1;'></span><strong>실족ㆍ골절</strong></li>
         <li><span style='background:#FC9238;opacity:1;'></span><strong>기타</strong></li>
-        <li><span style='background:#89C461;opacity:1;'></span><strong>일시적고립</strong></li>
+        <li><span style='background:#75D456;opacity:1;'></span><strong>일시적고립</strong></li>
         <li><span style='background:#C82E23;opacity:1;'></span><strong>탈진경련</strong></li>
         <li><span style='background:#8E44AD;opacity:1;'></span><strong>낙석ㆍ낙빙</strong></li>
-        <li><span style='background:brown;opacity:1;'></span><strong>추락</strong></li>
+        <li><span style='background:#784315;opacity:1;'></span><strong>추락</strong></li>
         <li><span style='background:#E05EC6;opacity:1;'></span><strong>심장사고</strong></li>
         <li><span style='background:gray;opacity:1;'></span><strong>해충피해</strong></li>
         <li><span style='background:#F4D03F;opacity:1;'></span><strong>익수</strong></li>
@@ -426,7 +426,7 @@ def make_hotspot_safetyplace(selected_national_park_accident,selected_npark_boun
     cluster_layer_콜드스팟.add_to(m)
     
     # 안전쉼터 레이어 설정 및 추가
-    shelter_layer = folium.FeatureGroup(name='안전쉼터')
+    shelter_layer = folium.FeatureGroup(name='기존 안전쉼터 설치지점')
     for idx, row in safety_place.iterrows():
         folium.CircleMarker(
             location=(row['위도'], row['경도']),
@@ -529,7 +529,7 @@ def make_hotspot_safetyplace(selected_national_park_accident,selected_npark_boun
             ).add_to(out_hotspot_layer)
         out_hotspot_layer.add_to(m)
     except ValueError as e:
-        st.error("사고 발생 건수가 적어 지도 분석이 어려워요. 다른 공원을 분석해주세요!")
+        st.error("사고 발생 건수가 적어 지도 분석이 어려워요. 다른 공원을 분석해주세요.")
         
        # 사고 원인별 색상 사전 정의
     palette = sns.color_palette('bright')
@@ -631,17 +631,17 @@ def make_hotspot_safetyplace(selected_national_park_accident,selected_npark_boun
     
     <div id='maplegend' class='maplegend' 
         style='position: absolute; z-index:9999; border:2px grey; background-color:rgba(255, 255, 255, 0.8);
-        border-radius:6px; padding: 10px; font-size:13px; left: 10px; bottom: 10px;'>
+        border-radius:6px; padding: 10px; font-size:13px; left: 10px; bottom: 110px;'>
         
     <div class='legend-title'>사고원인 범례</div>
     <div class='legend-scale'>
     <ul class='legend-labels'>
-        <li><span style='background:#3D5AFF;opacity:1;'></span><strong>실족ㆍ골절</strong></li>
+        <li><span style='background:blue;opacity:1;'></span><strong>실족ㆍ골절</strong></li>
         <li><span style='background:#E28332;opacity:1;'></span><strong>기타</strong></li>
-        <li><span style='background:#89C461;opacity:1;'></span><strong>일시적고립</strong></li>
+        <li><span style='background:#75D456;opacity:1;'></span><strong>일시적고립</strong></li>
         <li><span style='background:#C82E23;opacity:1;'></span><strong>탈진경련</strong></li>
         <li><span style='background:#8E44AD;opacity:1;'></span><strong>낙석ㆍ낙빙</strong></li>
-        <li><span style='background:brown;opacity:1;'></span><strong>추락</strong></li>
+        <li><span style='background:#784315;opacity:1;'></span><strong>추락</strong></li>
         <li><span style='background:#E05EC6;opacity:1;'></span><strong>심장사고</strong></li>
         <li><span style='background:gray;opacity:1;'></span><strong>해충피해</strong></li>
         <li><span style='background:#F4D03F;opacity:1;'></span><strong>익수</strong></li>
@@ -701,6 +701,105 @@ def make_hotspot_safetyplace(selected_national_park_accident,selected_npark_boun
     macro = MacroElement()
     macro._template = Template(template)
     macro.add_to(m)
+
+        
+    template2 = """
+    {% macro html(this, kwargs) %}
+
+    <!doctype html>
+    <html lang="en">
+    <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>jQuery UI Draggable - Default functionality</title>
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+
+    <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    
+    <script>
+    $( function() {
+        $( "#maplegend2" ).draggable({
+                        start: function (event, ui) {
+                            $(this).css({
+                                right: "auto",
+                                top: "auto",
+                                bottom: "auto"
+                            });
+                        }
+                    });
+    });
+
+    </script>
+    </head>
+    <body>
+    <head>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" integrity="sha384-ekzFgdUyJibDJSR+Jb+wdX4Axq7rKjHcXdMI1a3iFxoZou1GEGq3w5LaD1aMhohc" crossorigin="anonymous">
+    </head>
+    
+    <div id='maplegend2' class='maplegend' 
+        style='position: absolute; z-index:9999; border:2px grey; background-color:rgba(255, 255, 255, 0.8);
+        border-radius:6px; padding: 10px; font-size:13px; left: 10px; bottom: 10px;'>
+        
+    <div class='legend-title'>범례</div>
+    <div class='legend-scale'>
+    <ul class='legend-labels'>
+        <li><span style='background:#417E23;opacity:1;'></span><strong>기존 안전쉼터 설치지점</strong></li>
+        <li><span style='font-size: 14px;'><i class="fas fa-house" style="color: #83AE41;"></i></span><strong>안전쉼터 추가설치 예측지점</strong></li>
+
+    </ul>
+    </div>
+    </div>
+    
+    </body>
+    </html>
+
+    <style type='text/css'>
+    .maplegend .legend-title {
+        text-align: left;
+        margin-bottom: 5px;
+        font-weight: bold;
+        font-size: 90%;
+        }
+    .maplegend .legend-scale ul {
+        margin: 0;
+        margin-bottom: 5px;
+        padding: 0;
+        float: left;
+        list-style: none;
+        }
+    .maplegend .legend-scale ul li {
+        font-size: 80%;
+        list-style: none;
+        margin-left: 0;
+        line-height: 18px;
+        margin-bottom: 2px;
+        }
+    .maplegend ul.legend-labels li span {
+        display: block;
+        float: left;
+        height: 16px;
+        width: 30px;
+        margin-right: 5px;
+        margin-left: 0;
+        border: 1px solid #999;
+        }
+    .maplegend .legend-source {
+        font-size: 80%;
+        color: #777;
+        clear: both;
+        }
+    .maplegend a {
+        color: #777;
+        }
+    </style>
+    {% endmacro %}"""
+
+    # Add the legend to the map
+    macro2 = MacroElement()
+    macro2._template = Template(template2)
+    macro2.add_to(m)
+
     return m
 
 
@@ -898,7 +997,7 @@ def make_hotspot_heart(selected_national_park_accident,selected_npark_boundary,d
     ).add_to(m)
 
     # AED 위치
-    df_AED_layer = folium.FeatureGroup(name='AED')
+    df_AED_layer = folium.FeatureGroup(name='기존 AED 설치지점')
     for idx, row in df_AED.iterrows():
         folium.CircleMarker(
             location=(row['위도'], row['경도']),
@@ -975,7 +1074,7 @@ def make_hotspot_heart(selected_national_park_accident,selected_npark_boundary,d
             ).add_to(out_hotspot_layer)
         out_hotspot_layer.add_to(m)
     except ValueError as e:
-        st.error("심장사고 발생 건수가 적어 지도 분석이 어려워요. 다른 공원을 분석해주세요! ")
+        st.error("심장사고 발생 건수가 적어 지도 분석이 어려워요. 다른 공원을 분석해주세요.")
 #        # 사고 원인별 색상 사전 정의
 #     palette = sns.color_palette('bright')
 
@@ -1038,6 +1137,103 @@ def make_hotspot_heart(selected_national_park_accident,selected_npark_boundary,d
     ).add_to(m)
     # 레이어 컨트롤 추가하여 사용자가 레이어 선택 가능하게 함
     folium.LayerControl().add_to(m)
+
+    
+    template = """
+    {% macro html(this, kwargs) %}
+
+    <!doctype html>
+    <html lang="en">
+    <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>jQuery UI Draggable - Default functionality</title>
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+
+    <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    
+    <script>
+    $( function() {
+        $( "#maplegend" ).draggable({
+                        start: function (event, ui) {
+                            $(this).css({
+                                right: "auto",
+                                top: "auto",
+                                bottom: "auto"
+                            });
+                        }
+                    });
+    });
+
+    </script>
+    </head>
+    <body>
+
+    
+    <div id='maplegend' class='maplegend' 
+        style='position: absolute; z-index:9999; border:2px grey; background-color:rgba(255, 255, 255, 0.8);
+        border-radius:6px; padding: 10px; font-size:13px; left: 10px; bottom: 10px;'>
+        
+    <div class='legend-title'>범례</div>
+    <div class='legend-scale'>
+    <ul class='legend-labels'>
+        <li><span style='background:blue;opacity:1;'></span><strong>기존 AED 설치지점</strong></li>
+        <li><span style='background:#DC3323;opacity:1;'></span><strong>심장사고지점</strong></li>
+        <li><span style='color:#E05EC6; font-size: 14px;'>&#10084;</span><strong>AED 추가설치 예측지점</strong></li>
+
+    </ul>
+    </div>
+    </div>
+    
+    </body>
+    </html>
+
+    <style type='text/css'>
+    .maplegend .legend-title {
+        text-align: left;
+        margin-bottom: 5px;
+        font-weight: bold;
+        font-size: 90%;
+        }
+    .maplegend .legend-scale ul {
+        margin: 0;
+        margin-bottom: 5px;
+        padding: 0;
+        float: left;
+        list-style: none;
+        }
+    .maplegend .legend-scale ul li {
+        font-size: 80%;
+        list-style: none;
+        margin-left: 0;
+        line-height: 18px;
+        margin-bottom: 2px;
+        }
+    .maplegend ul.legend-labels li span {
+        display: block;
+        float: left;
+        height: 16px;
+        width: 30px;
+        margin-right: 5px;
+        margin-left: 0;
+        border: 1px solid #999;
+        }
+    .maplegend .legend-source {
+        font-size: 80%;
+        color: #777;
+        clear: both;
+        }
+    .maplegend a {
+        color: #777;
+        }
+    </style>
+    {% endmacro %}"""
+
+    # Add the legend to the map
+    macro = MacroElement()
+    macro._template = Template(template)
+    macro.add_to(m)
 
     return m
 
@@ -1314,7 +1510,7 @@ def make_hotspot_fall(selected_national_park_accident,selected_npark_boundary,df
             ).add_to(out_hotspot_layer)
         out_hotspot_layer.add_to(m)
     except ValueError as e:
-        st.error("추락사고 발생 건수가 적어 지도 분석이 어려워요. 다른 공원을 분석해주세요! ")
+        st.error("추락사고 발생 건수가 적어 지도 분석이 어려워요. 다른 공원을 분석해주세요.")
 
 #        # 사고 원인별 색상 사전 정의
 #     palette = sns.color_palette('bright')
@@ -1378,6 +1574,105 @@ def make_hotspot_fall(selected_national_park_accident,selected_npark_boundary,df
     ).add_to(m)
     # 레이어 컨트롤 추가하여 사용자가 레이어 선택 가능하게 함
     folium.LayerControl().add_to(m)
+
+    template = """
+    {% macro html(this, kwargs) %}
+
+    <!doctype html>
+    <html lang="en">
+    <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>jQuery UI Draggable - Default functionality</title>
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+
+    <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    
+    <script>
+    $( function() {
+        $( "#maplegend" ).draggable({
+                        start: function (event, ui) {
+                            $(this).css({
+                                right: "auto",
+                                top: "auto",
+                                bottom: "auto"
+                            });
+                        }
+                    });
+    });
+
+    </script>
+    </head>
+    <body>
+
+    
+    <head>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" integrity="sha384-ekzFgdUyJibDJSR+Jb+wdX4Axq7rKjHcXdMI1a3iFxoZou1GEGq3w5LaD1aMhohc" crossorigin="anonymous">
+    </head>
+    
+    <div id='maplegend' class='maplegend' 
+        style='position: absolute; z-index:9999; border:2px grey; background-color:rgba(255, 255, 255, 0.8);
+        border-radius:6px; padding: 10px; font-size:13px; left: 10px; bottom: 10px;'>
+        
+    <div class='legend-title'>범례</div>
+    <div class='legend-scale'>
+    <ul class='legend-labels'>
+        <li><span style='background:blue;opacity:1;'></span><strong>기존 추락위험지역</strong></li>
+        <li><span style='background:#DC3323;opacity:1;'></span><strong>추락사고지점</strong></li>
+        <li><span style='font-size: 15px;'><i class="fa-solid fa-circle-down" style="color: #599CD5;"></i></span><strong>추락위험지역 예측지점</strong></li>
+    </ul>
+    </div>
+    </div>
+    
+    </body>
+    </html>
+
+    <style type='text/css'>
+    .maplegend .legend-title {
+        text-align: left;
+        margin-bottom: 5px;
+        font-weight: bold;
+        font-size: 90%;
+        }
+    .maplegend .legend-scale ul {
+        margin: 0;
+        margin-bottom: 5px;
+        padding: 0;
+        float: left;
+        list-style: none;
+        }
+    .maplegend .legend-scale ul li {
+        font-size: 80%;
+        list-style: none;
+        margin-left: 0;
+        line-height: 18px;
+        margin-bottom: 2px;
+        }
+    .maplegend ul.legend-labels li span {
+        display: block;
+        float: left;
+        height: 16px;
+        width: 30px;
+        margin-right: 5px;
+        margin-left: 0;
+        border: 1px solid #999;
+        }
+    .maplegend .legend-source {
+        font-size: 80%;
+        color: #777;
+        clear: both;
+        }
+    .maplegend a {
+        color: #777;
+        }
+    </style>
+    {% endmacro %}"""
+
+    # Add the legend to the map
+    macro = MacroElement()
+    macro._template = Template(template)
+    macro.add_to(m)
 
     return m
 
@@ -1448,12 +1743,12 @@ def plot_donut_chart(df):
 
     # 각 카테고리에 대한 색상을 지정합니다.
     colors = {
-        '실족ㆍ골절': '#3D5AFF',
+        '실족ㆍ골절': '#055AFF',
         '기타': '#FC9238',
-        '일시적고립': '#89C461',
+        '일시적고립': '#75D456',
         '탈진경련': '#C82E23',
         '낙석ㆍ낙빙': '#8E44AD',
-        '추락': 'brown',
+        '추락': '#784315',
         '심장사고': '#E05EC6',
         '해충피해': 'gray',
         '익수': '#F4D03F'
@@ -1579,7 +1874,7 @@ if not button:
     """, unsafe_allow_html=True)
    # CSS 스타일
 if button:
-    with st.spinner('Wait for it...'):
+    with st.spinner('분석 중입니다. 잠시만 기다려주세요!'):
         # npark_boundary = gpd.read_file('./data/Protected_areas_OECM_Republic_of_Korea_ver_2023.shp', encoding='cp949')
         # park_data = pd.read_csv('./data/240301_final_data_ver2.csv')
         # safety_place = pd.read_csv('./data/안전쉼터_final.csv')
@@ -1736,4 +2031,3 @@ if button:
                 #     # Streamlit에 HTML 표시
                 #     st.markdown(html, unsafe_allow_html=True)
                 
-
