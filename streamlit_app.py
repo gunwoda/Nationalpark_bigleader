@@ -113,6 +113,17 @@ def make_pointplot(selected_national_park_accident,selected_npark_boundary):
         name='지명표시', 
         overlay=True
     ).add_to(m)
+
+    geojson_data = json.loads(selected_npark_boundary.to_json())
+    folium.GeoJson(
+        geojson_data,
+        name='국립공원 경계',
+        style_function=lambda feature: {
+            'color': 'yellow',
+            'weight': 2,
+            'fillOpacity': 0
+        }
+    ).add_to(m)
     # 사고 원인별 색상 사전 정의
     palette = sns.color_palette('bright')
 
@@ -162,17 +173,6 @@ def make_pointplot(selected_national_park_accident,selected_npark_boundary):
     all_accidents_group.add_to(m)
     # 사고 원인별 그룹을 그룹화된 레이어 컨트롤로 추가
     GroupedLayerControl(groups=groups, collapsed=False, exclusive_groups=False).add_to(m)
-    
-    geojson_data = json.loads(selected_npark_boundary.to_json())
-    folium.GeoJson(
-        geojson_data,
-        name='국립공원 경계',
-        style_function=lambda feature: {
-            'color': 'yellow',
-            'weight': 2,
-            'fillOpacity': 0
-        }
-    ).add_to(m)
 
     folium.LayerControl().add_to(m)
 
@@ -360,6 +360,17 @@ def make_hotspot_safetyplace(selected_national_park_accident,selected_npark_boun
         overlay=True
     ).add_to(m)
 
+    geojson_data = json.loads(selected_npark_boundary.to_json())
+    folium.GeoJson(
+        geojson_data,
+        name='국립공원 경계',
+        style_function=lambda feature: {
+            'color': 'yellow',
+            'weight': 2,
+            'fillOpacity': 0
+        }
+    ).add_to(m)
+
     # 클러스터 레이어 설정
     cluster_colors_핫스팟 = {
         'HH': 'red',
@@ -469,16 +480,7 @@ def make_hotspot_safetyplace(selected_national_park_accident,selected_npark_boun
     # sign_layer.add_to(m)
 
 
-    geojson_data = json.loads(selected_npark_boundary.to_json())
-    folium.GeoJson(
-        geojson_data,
-        name='국립공원 경계',
-        style_function=lambda feature: {
-            'color': 'yellow',
-            'weight': 2,
-            'fillOpacity': 0
-        }
-    ).add_to(m)
+
 
 
     def filter_hotspots_far_from_safetyplace(nbr_final, safety_place, min_distance=100, cluster_label='HH'):
@@ -530,7 +532,18 @@ def make_hotspot_safetyplace(selected_national_park_accident,selected_npark_boun
         out_hotspot_layer.add_to(m)
     except ValueError as e:
         st.error("사고 발생 건수가 적어 지도 분석이 어려워요. 다른 공원을 분석해주세요.")
-        
+
+    geojson_data = json.loads(selected_npark_boundary.to_json())
+    folium.GeoJson(
+        geojson_data,
+        name='국립공원 경계',
+        style_function=lambda feature: {
+            'color': 'yellow',
+            'weight': 2,
+            'fillOpacity': 0
+        }
+    ).add_to(m)  
+
        # 사고 원인별 색상 사전 정의
     palette = sns.color_palette('bright')
 
@@ -583,16 +596,7 @@ def make_hotspot_safetyplace(selected_national_park_accident,selected_npark_boun
     # 사고 원인별 그룹을 그룹화된 레이어 컨트롤로 추가
     GroupedLayerControl(groups=groups, collapsed=False, exclusive_groups=False).add_to(m)
     
-    geojson_data = json.loads(selected_npark_boundary.to_json())
-    folium.GeoJson(
-        geojson_data,
-        name='국립공원 경계',
-        style_function=lambda feature: {
-            'color': 'yellow',
-            'weight': 2,
-            'fillOpacity': 0
-        }
-    ).add_to(m)
+
     # 레이어 컨트롤 추가하여 사용자가 레이어 선택 가능하게 함
     folium.LayerControl().add_to(m)
 
@@ -890,6 +894,16 @@ def make_hotspot_heart(selected_national_park_accident,selected_npark_boundary,d
         overlay=True
     ).add_to(m)
 
+    geojson_data = json.loads(selected_npark_boundary.to_json())
+    folium.GeoJson(
+        geojson_data,
+        name='국립공원 경계',
+        style_function=lambda feature: {
+            'color': 'yellow',
+            'weight': 2,
+            'fillOpacity': 0
+        }
+    ).add_to(m)
 
     # 클러스터 레이어 설정
     cluster_colors_핫스팟 = {
@@ -984,17 +998,6 @@ def make_hotspot_heart(selected_national_park_accident,selected_npark_boundary,d
     #         fill_opacity=0.8
     #     ).add_to(sign_layer)
     # sign_layer.add_to(m)
-
-    geojson_data = json.loads(selected_npark_boundary.to_json())
-    folium.GeoJson(
-        geojson_data,
-        name='국립공원 경계',
-        style_function=lambda feature: {
-            'color': 'yellow',
-            'weight': 2,
-            'fillOpacity': 0
-        }
-    ).add_to(m)
 
     # AED 위치
     df_AED_layer = folium.FeatureGroup(name='기존 AED 설치지점')
@@ -1125,16 +1128,7 @@ def make_hotspot_heart(selected_national_park_accident,selected_npark_boundary,d
 #     # 사고 원인별 그룹을 그룹화된 레이어 컨트롤로 추가
 #     GroupedLayerControl(groups=groups, collapsed=False, exclusive_groups=False).add_to(m)
     
-    geojson_data = json.loads(selected_npark_boundary.to_json())
-    folium.GeoJson(
-        geojson_data,
-        name='국립공원 경계',
-        style_function=lambda feature: {
-            'color': 'yellow',
-            'weight': 2,
-            'fillOpacity': 0
-        }
-    ).add_to(m)
+
     # 레이어 컨트롤 추가하여 사용자가 레이어 선택 가능하게 함
     folium.LayerControl().add_to(m)
 
@@ -1325,6 +1319,18 @@ def make_hotspot_fall(selected_national_park_accident,selected_npark_boundary,df
         name='지명표시', 
         overlay=True
     ).add_to(m)
+
+    geojson_data = json.loads(selected_npark_boundary.to_json())
+    folium.GeoJson(
+        geojson_data,
+        name='국립공원 경계',
+        style_function=lambda feature: {
+            'color': 'yellow',
+            'weight': 2,
+            'fillOpacity': 0
+        }
+    ).add_to(m)
+
     # 클러스터 레이어 설정
     cluster_colors_핫스팟 = {
         'HH': 'red',
@@ -1419,16 +1425,7 @@ def make_hotspot_fall(selected_national_park_accident,selected_npark_boundary,df
     #     ).add_to(sign_layer)
     # sign_layer.add_to(m)
 
-    geojson_data = json.loads(selected_npark_boundary.to_json())
-    folium.GeoJson(
-        geojson_data,
-        name='국립공원 경계',
-        style_function=lambda feature: {
-            'color': 'yellow',
-            'weight': 2,
-            'fillOpacity': 0
-        }
-    ).add_to(m)
+
 
 
     # 추락위험지역 설정 및 추가
@@ -1562,16 +1559,6 @@ def make_hotspot_fall(selected_national_park_accident,selected_npark_boundary,df
 #     # 사고 원인별 그룹을 그룹화된 레이어 컨트롤로 추가
 #     GroupedLayerControl(groups=groups, collapsed=False, exclusive_groups=False).add_to(m)
     
-    geojson_data = json.loads(selected_npark_boundary.to_json())
-    folium.GeoJson(
-        geojson_data,
-        name='국립공원 경계',
-        style_function=lambda feature: {
-            'color': 'yellow',
-            'weight': 2,
-            'fillOpacity': 0
-        }
-    ).add_to(m)
     # 레이어 컨트롤 추가하여 사용자가 레이어 선택 가능하게 함
     folium.LayerControl().add_to(m)
 
@@ -1693,6 +1680,18 @@ def make_heatmap(selected_national_park_accident,selected_npark_boundary):
                         force_separate_button=True)  # 전체 화면 버튼을 별도의 버튼으로 표시
     m.add_child(fullscreen)
 
+     # seoul_npark_boundary GeoDataFrame을 GeoJson으로 변환 및 추가
+    geojson_data = json.loads(selected_npark_boundary.to_json())
+    folium.GeoJson(
+        geojson_data,
+        name='경계',
+        style_function=lambda feature: {
+            'color': 'yellow',
+            'weight': 2,
+            'fillOpacity': 0
+        }
+    ).add_to(m)
+    
     # 탐방로 레이어 설정 및 추가
     trail_layer = folium.FeatureGroup(name='탐방로')
     folium.GeoJson(
@@ -1708,17 +1707,7 @@ def make_heatmap(selected_national_park_accident,selected_npark_boundary):
     ).add_to(trail_layer)
     trail_layer.add_to(m)
 
-    # seoul_npark_boundary GeoDataFrame을 GeoJson으로 변환 및 추가
-    geojson_data = json.loads(selected_npark_boundary.to_json())
-    folium.GeoJson(
-        geojson_data,
-        name='경계',
-        style_function=lambda feature: {
-            'color': 'yellow',
-            'weight': 2,
-            'fillOpacity': 0
-        }
-    ).add_to(m)
+
 
     # 사고 위치 데이터 준비 (위도, 경도)
     accident_locations = selected_national_park_accident[['위도_변환', '경도_변환']].values.tolist()
