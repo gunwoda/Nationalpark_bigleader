@@ -1894,7 +1894,7 @@ if button:
         npark_boundary = gpd.read_file('./data/npark_boundary.gpkg',layer='npark_boundary')
         df_AED = pd.read_csv('./data/AED_final.csv')
         df_fall = pd.read_csv('./data/추락위험지역_final.csv')
-        safety_place = pd.read_csv("./data/안전쉼터_final.csv")
+        safety_place = pd.read_csv("./data/안전쉼터_추가변환.csv")
 
 
         # #######################
