@@ -154,8 +154,7 @@ def make_pointplot(selected_national_park_accident,selected_npark_boundary):
 
         # 사고 위치에 대한 CircleMarker 추가 및 팝업 정보 설정
         for idx, row in type_accident.iterrows():
-            tooltip_text = f"유형: {row['유형']}<br>사고 일자: {row['연월일']}"  # 툴팁 텍스트 정의
-            popup_text = f"유형: {row['유형']}<br>사고 일자: {row['연월일']}<br>위치: {row['위도_변환']}, {row['경도_변환']}<br>사고장소: {row['위치']}"
+            tooltip_text =f"유형: {row['유형']}<br>사고 일자: {row['연월일']}<br>위치: {row['위도_변환']}, {row['경도_변환']}<br>사고장소: {row['위치']}<br>고도: {float(row['고도']):.2f}<br>경사도: {float(row['경사도']):.2f}"
             folium.CircleMarker(
                 location=(row['위도_변환'], row['경도_변환']),
                 radius=3,
@@ -1762,6 +1761,80 @@ def plot_donut_chart(df):
 
     return fig
 
+import geopandas as gpd
+from shapely.geometry import Point, Polygon
+from folium.plugins import MeasureControl
+from folium import Marker, LayerControl, GeoJson
+import folium 
+# 등급별 색상 지정
+def color_producer(val):
+    if val == '매우 낮음':
+        return 'lightgreen'
+    elif val == '낮음':
+        return 'green'
+    elif val == '보통':
+        return 'yellow'
+    elif val == '높음':
+        return 'orange'
+    elif val == '매우 높음':
+        return 'salmon'
+    else:
+        return 'red'
+    
+def model(gdf):
+    m = folium.Map(location=[37.658, 126.942], zoom_start=12)
+    # GeoJson 레이어 추가
+    folium.GeoJson(
+        gdf,
+        name="고위험도",
+        style_function=lambda feature: {
+            'fillColor': color_producer(feature['properties']['위험도']),
+            'color': 'black',
+            'weight': 1,
+            'fillOpacity': 0.7
+        },
+        highlight_function=lambda feature: {'weight': 3, 'color': 'blue'},
+        tooltip=folium.GeoJsonTooltip(
+            fields=['formatted_latitude', 'formatted_longitude', '위험도', '고도', '경사도'],
+            aliases=['위도:', '경도:', '위험도:', '고도:', '경사도:'],  # Tooltip 텍스트
+            localize=True
+        ),
+        popup=folium.GeoJsonPopup(
+            fields=['위험도', '고도', '경사도', 'formatted_latitude', 'formatted_longitude'],
+            aliases=['위험도:', '고도:', '경사도:', '위도:', '경도:'],  # 팝업 텍스트
+            localize=True
+        )
+    ).add_to(m)
+
+    # 안전쉼터 위치를 Marker로 추가
+    shelter_layer = folium.FeatureGroup(name='안전쉼터')
+    for idx, row in bukhan_shelter.iterrows():
+        # 팝업을 위한 HTML 컨텐츠 생성
+        popup_html = f"""
+        <div style='font-family: "Arial", sans-serif; font-size: 12px;'>
+            <h4>{row['쉼터명']}</h4>
+            <p>위도: {row['geometry'].y:.5f}<br>
+            경도: {row['geometry'].x:.5f}</p>
+        </div>
+        """
+        popup = folium.Popup(popup_html, max_width=250)
+        
+        # 마커 생성
+        Marker(
+            location=[row['geometry'].y, row['geometry'].x],  # GeoDataFrame에서 위도, 경도 추출
+            popup=popup
+        ).add_to(shelter_layer)
+
+    shelter_layer.add_to(m)
+
+    # 점 찍고 점과 점 사이 거리 재기
+    m.add_child(MeasureControl())
+
+    # 레이어 켜고 끄는 컨트롤 추가
+    LayerControl().add_to(m)
+
+    return m
+
 #######################
 # Sidebar
 with st.sidebar:
@@ -1894,7 +1967,9 @@ if button:
         npark_boundary = gpd.read_file('./data/npark_boundary.gpkg',layer='npark_boundary')
         df_AED = pd.read_csv('./data/AED_final.csv')
         df_fall = pd.read_csv('./data/추락위험지역_final.csv')
-        safety_place = pd.read_csv("./data/안전쉼터_추가변환.csv")
+        safety_place = pd.read_csv("./data/안전쉼터_final.csv")
+        gdf = gpd.read_file("./data/북한산 추락사고_gdf.geojson")
+        bukhan_shelter = gpd.read_file("./data/북한산 안전쉼터.geoson")
 
 
         # #######################
@@ -1949,7 +2024,7 @@ if button:
 
         with col[1]:
             st.markdown('#### 사고 현황판')
-            tab1, tab2, tab3, tab4, tab5 = st.tabs(["사고 현황", "전체사고 히트맵","안전쉼터위치 선정","AED위치 선정", "추락위험지역 선정"])
+            tab1, tab2, tab3, tab4, tab5, tap6 = st.tabs(["사고 현황", "전체사고 히트맵","안전쉼터위치 선정","AED위치 선정", "추락위험지역 선정", '북한산 추락사고 예측모델'])
             with tab1:
                 #col1 = st.columns([8.1, 1.9])
                 #with col1[0]:
@@ -2021,3 +2096,12 @@ if button:
                 #     # Streamlit에 HTML 표시
                 #     st.markdown(html, unsafe_allow_html=True)
                 
+            with tap6:
+                #col1 = st.columns([8.1, 1.9])
+                #with col1[0]:
+                    # 지도 생성
+                m6 = model(gdf)
+                folium_static(m6)
+                # with col1[1]:
+                #     # Streamlit에 HTML 표시
+                #     st.markdown(html, unsafe_allow_html=True)
