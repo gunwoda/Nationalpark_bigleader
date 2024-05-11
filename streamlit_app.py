@@ -1764,34 +1764,64 @@ def plot_donut_chart(df):
 import geopandas as gpd
 from shapely.geometry import Point, Polygon
 from folium.plugins import MeasureControl
-from folium import Marker, LayerControl, GeoJson
-import folium 
+from folium import Marker, LayerControl, GeoJson,Icon, FeatureGroup
+import folium
+
 # 등급별 색상 지정
 def color_producer(val):
-    if val == '매우 낮음':
+    if val == '6등급':
         return 'lightgreen'
-    elif val == '낮음':
+    elif val == '5등급':
         return 'green'
-    elif val == '보통':
+    elif val == '4등급':
         return 'yellow'
-    elif val == '높음':
+    elif val == '3등급':
         return 'orange'
-    elif val == '매우 높음':
+    elif val == '2등급':
         return 'salmon'
     else:
         return 'red'
     
 def model(gdf):
-    m = folium.Map(location=[37.658, 126.942], zoom_start=12)
+
+    map_center_lat, map_center_lon = find_center_latitudes_longtitudes(selected_national_park_accident)
+
+    first = gdf[gdf['위험도'] == '1등급']
+    second = gdf[gdf['위험도'] == '2등급']
+    third = gdf[gdf['위험도'] == '3등급']
+    m = folium.Map(location=[map_center_lat, map_center_lon], zoom_start=12)
+
+    # 전체 화면 버튼 추가
+    fullscreen = Fullscreen(position='topleft',  # 버튼 위치
+                            title='전체 화면',     # 마우스 오버시 표시될 텍스트
+                            title_cancel='전체 화면 해제',  # 전체 화면 모드 해제 버튼의 텍스트
+                            force_separate_button=True)  # 전체 화면 버튼을 별도의 버튼으로 표시
+    m.add_child(fullscreen)
+    # VWorld Satellite Layer 추가
+    vworld_key = "BF677CB9-D1EA-3831-B328-084A9AE3CDCC"
+    satellite_layer = folium.TileLayer(
+        tiles=f"http://api.vworld.kr/req/wmts/1.0.0/{vworld_key}/Satellite/{{z}}/{{y}}/{{x}}.jpeg",
+        attr='VWorld Satellite', 
+        name='위성지도'
+    ).add_to(m)
+
+    # VWorld Hybrid Layer 추가
+    hybrid_layer = folium.TileLayer(
+        tiles=f"http://api.vworld.kr/req/wmts/1.0.0/{vworld_key}/Hybrid/{{z}}/{{y}}/{{x}}.png",
+        attr='VWorld Hybrid', 
+        name='지명표시', 
+        overlay=True
+    ).add_to(m)
+
     # GeoJson 레이어 추가
     folium.GeoJson(
-        gdf,
-        name="고위험도",
+        first,
+        name="위험도 1등급",
         style_function=lambda feature: {
             'fillColor': color_producer(feature['properties']['위험도']),
             'color': 'black',
             'weight': 1,
-            'fillOpacity': 0.7
+            'fillOpacity': 0.4
         },
         highlight_function=lambda feature: {'weight': 3, 'color': 'blue'},
         tooltip=folium.GeoJsonTooltip(
@@ -1800,11 +1830,58 @@ def model(gdf):
             localize=True
         ),
         popup=folium.GeoJsonPopup(
-            fields=['위험도', '고도', '경사도', 'formatted_latitude', 'formatted_longitude'],
-            aliases=['위험도:', '고도:', '경사도:', '위도:', '경도:'],  # 팝업 텍스트
+            fields=['formatted_latitude', 'formatted_longitude', '위험도', '고도', '경사도', ],
+            aliases=['위도:', '경도:', '위험도:', '고도:', '경사도:'],  # 팝업 텍스트
             localize=True
         )
     ).add_to(m)
+
+    # GeoJson 레이어 추가
+    folium.GeoJson(
+        second,
+        name="위험도 2등급",
+        style_function=lambda feature: {
+            'fillColor': color_producer(feature['properties']['위험도']),
+            'color': 'black',
+            'weight': 1,
+            'fillOpacity': 0.4
+        },
+        highlight_function=lambda feature: {'weight': 3, 'color': 'blue'},
+        tooltip=folium.GeoJsonTooltip(
+            fields=['formatted_latitude', 'formatted_longitude', '위험도', '고도', '경사도'],
+            aliases=['위도:', '경도:', '위험도:', '고도:', '경사도:'],  # Tooltip 텍스트
+            localize=True
+        ),
+        popup=folium.GeoJsonPopup(
+            fields=['formatted_latitude', 'formatted_longitude', '위험도', '고도', '경사도', ],
+            aliases=['위도:', '경도:', '위험도:', '고도:', '경사도:'],  # 팝업 텍스트
+            localize=True
+        )
+    ).add_to(m)
+
+    # GeoJson 레이어 추가
+    folium.GeoJson(
+        third,
+        name="위험도 3등급",
+        style_function=lambda feature: {
+            'fillColor': color_producer(feature['properties']['위험도']),
+            'color': 'black',
+            'weight': 1,
+            'fillOpacity': 0.4
+        },
+        highlight_function=lambda feature: {'weight': 3, 'color': 'blue'},
+        tooltip=folium.GeoJsonTooltip(
+            fields=['formatted_latitude', 'formatted_longitude', '위험도', '고도', '경사도'],
+            aliases=['위도:', '경도:', '위험도:', '고도:', '경사도:'],  # Tooltip 텍스트
+            localize=True
+        ),
+        popup=folium.GeoJsonPopup(
+            fields=['formatted_latitude', 'formatted_longitude', '위험도', '고도', '경사도', ],
+            aliases=['위도:', '경도:', '위험도:', '고도:', '경사도:'],  # 팝업 텍스트
+            localize=True
+        )
+    ).add_to(m)
+
 
     # 안전쉼터 위치를 Marker로 추가
     shelter_layer = folium.FeatureGroup(name='안전쉼터')
@@ -1819,9 +1896,10 @@ def model(gdf):
         """
         popup = folium.Popup(popup_html, max_width=250)
         
-        # 마커 생성
+        # 마커 생성 (Font Awesome 아이콘 사용)
         Marker(
             location=[row['geometry'].y, row['geometry'].x],  # GeoDataFrame에서 위도, 경도 추출
+            icon=Icon(icon='person-shelter', prefix='fa', color='blue'),  # Font Awesome 아이콘 설정
             popup=popup
         ).add_to(shelter_layer)
 
@@ -1830,6 +1908,10 @@ def model(gdf):
     # 점 찍고 점과 점 사이 거리 재기
     m.add_child(MeasureControl())
 
+    # 모든 지점 위경도 표시
+    m.add_child(
+        folium.LatLngPopup()
+    )
     # 레이어 켜고 끄는 컨트롤 추가
     LayerControl().add_to(m)
 
@@ -1969,7 +2051,7 @@ if button:
         df_fall = pd.read_csv('./data/추락위험지역_final.csv')
         safety_place = pd.read_csv("./data/안전쉼터_final.csv")
         gdf = gpd.read_file("./data/북한산 추락사고_gdf.geojson")
-        bukhan_shelter = gpd.read_file("./data/북한산 안전쉼터.geoson")
+        bukhan_shelter = gpd.read_file("./data/북한산 안전쉼터.geojson")
 
 
         # #######################
