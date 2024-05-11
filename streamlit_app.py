@@ -1782,13 +1782,13 @@ def color_producer(val):
     else:
         return 'red'
     
-def model(gdf):
+def fall_model(fall_gdf):
 
     map_center_lat, map_center_lon = find_center_latitudes_longtitudes(selected_national_park_accident)
 
-    first = gdf[gdf['위험도'] == '1등급']
-    second = gdf[gdf['위험도'] == '2등급']
-    third = gdf[gdf['위험도'] == '3등급']
+    first = fall_gdf[fall_gdf['위험도'] == '1등급']
+    second = fall_gdf[fall_gdf['위험도'] == '2등급']
+    third = fall_gdf[fall_gdf['위험도'] == '3등급']
     m = folium.Map(location=[map_center_lat, map_center_lon], zoom_start=12)
 
     # 전체 화면 버튼 추가
@@ -1812,7 +1812,17 @@ def model(gdf):
         name='지명표시', 
         overlay=True
     ).add_to(m)
-
+    # 국립공원 경계
+    geojson_data = json.loads(selected_npark_boundary.to_json())
+    folium.GeoJson(
+        geojson_data,
+        name='국립공원 경계',
+        style_function=lambda feature: {
+            'color': 'yellow',
+            'weight': 2,
+            'fillOpacity': 0
+        }
+    ).add_to(m)
     # GeoJson 레이어 추가
     folium.GeoJson(
         first,
@@ -1885,7 +1895,7 @@ def model(gdf):
 
     # 안전쉼터 위치를 Marker로 추가
     shelter_layer = folium.FeatureGroup(name='안전쉼터')
-    for idx, row in bukhan_shelter.iterrows():
+    for idx, row in shelter.iterrows():
         # 팝업을 위한 HTML 컨텐츠 생성
         popup_html = f"""
         <div style='font-family: "Arial", sans-serif; font-size: 12px;'>
@@ -1905,6 +1915,29 @@ def model(gdf):
 
     shelter_layer.add_to(m)
 
+    # 1000m 이상 거리에 있는 고위험 지역 필터링
+    need_shelter_df = first[first['nearest_shelter_dist'] > resolution]
+    need_shelter_df = need_shelter_df.to_crs(epsg=4326)
+
+    # 설치 지역 레이어 추가
+    need_shelter_layer = folium.FeatureGroup(name='설치 시급 지점')
+    for idx, row in need_shelter_df.iterrows():
+        # 팝업 컨텐츠 정의
+        popup_content = f"""
+        위도: {row['formatted_latitude']}<br>
+        경도: {row['formatted_longitude']}<br>
+        가까운 쉼터와의 거리: {row['nearest_shelter_dist']:.2f}m
+        """
+        popup = folium.Popup(popup_content, max_width=250)
+
+        # 마커 추가
+        Marker(
+            location=[row['geometry'].centroid.y, row['geometry'].centroid.x],
+            popup=popup,
+            icon=Icon(color='red', icon='exclamation-triangle', prefix='fa')  # FontAwesome 아이콘 사용
+        ).add_to(need_shelter_layer)
+
+    need_shelter_layer.add_to(m)
     # 점 찍고 점과 점 사이 거리 재기
     m.add_child(MeasureControl())
 
@@ -1912,10 +1945,423 @@ def model(gdf):
     m.add_child(
         folium.LatLngPopup()
     )
+
     # 레이어 켜고 끄는 컨트롤 추가
     LayerControl().add_to(m)
+    
+    template4 = """
+    {% macro html(this, kwargs) %}
 
+    <!doctype html>
+    <html lang="en">
+    <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>jQuery UI Draggable - Default functionality</title>
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+
+    <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    
+    <script>
+    $( function() {
+        $( "#maplegend" ).draggable({
+                        start: function (event, ui) {
+                            $(this).css({
+                                right: "auto",
+                                top: "auto",
+                                bottom: "auto"
+                            });
+                        }
+                    });
+    });
+
+    </script>
+    </head>
+    <body>
+
+    
+    <head>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" integrity="sha384-ekzFgdUyJibDJSR+Jb+wdX4Axq7rKjHcXdMI1a3iFxoZou1GEGq3w5LaD1aMhohc" crossorigin="anonymous">
+    </head>
+    
+    <div id='maplegend' class='maplegend' 
+        style='position: absolute; z-index:9999; border:2px grey; background-color:rgba(255, 255, 255, 0.8);
+        border-radius:6px; padding: 10px; font-size:13px; left: 10px; bottom: 10px;'>
+        
+    <div class='legend-title'>위험도 범례</div>
+    <div class='legend-scale'>
+    <ul class='legend-labels'>
+        <li><span style='background:red;opacity:1;'></span><strong>1등급 : 사고발생확률 95% 이상</strong></li>
+        <li><span style='background:salmon;opacity:1;'></span><strong>2등급 : 사고발생확률 90% 이상</strong></li>
+        <li><span style='background:orange;opacity:1;'></span><strong>3등급 : 사고발생확률 70% 이상</strong></li>
+    </ul>
+    </div>
+    </div>
+    
+    </body>
+    </html>
+
+    <style type='text/css'>
+    .maplegend .legend-title {
+        text-align: left;
+        margin-bottom: 5px;
+        font-weight: bold;
+        font-size: 90%;
+        }
+    .maplegend .legend-scale ul {
+        margin: 0;
+        margin-bottom: 5px;
+        padding: 0;
+        float: left;
+        list-style: none;
+        }
+    .maplegend .legend-scale ul li {
+        font-size: 80%;
+        list-style: none;
+        margin-left: 0;
+        line-height: 18px;
+        margin-bottom: 2px;
+        }
+    .maplegend ul.legend-labels li span {
+        display: block;
+        float: left;
+        height: 16px;
+        width: 30px;
+        margin-right: 5px;
+        margin-left: 0;
+        border: 1px solid #999;
+        }
+    .maplegend .legend-source {
+        font-size: 80%;
+        color: #777;
+        clear: both;
+        }
+    .maplegend a {
+        color: #777;
+        }
+    </style>
+    {% endmacro %}"""
+
+    # Add the legend to the map
+    macro = MacroElement()
+    macro._template = Template(template4)
+    macro.add_to(m)
+    
     return m
+
+def heart_model(heart_gdf):
+
+    map_center_lat, map_center_lon = find_center_latitudes_longtitudes(selected_national_park_accident)
+
+    first = heart_gdf[heart_gdf['위험도'] == '1등급']
+    second = heart_gdf[heart_gdf['위험도'] == '2등급']
+    third = heart_gdf[heart_gdf['위험도'] == '3등급']
+
+    m = folium.Map(location=[map_center_lat, map_center_lon], zoom_start=12)
+
+    # 전체 화면 버튼 추가
+    fullscreen = Fullscreen(position='topleft',  # 버튼 위치
+                            title='전체 화면',     # 마우스 오버시 표시될 텍스트
+                            title_cancel='전체 화면 해제',  # 전체 화면 모드 해제 버튼의 텍스트
+                            force_separate_button=True)  # 전체 화면 버튼을 별도의 버튼으로 표시
+    m.add_child(fullscreen)
+    # VWorld Satellite Layer 추가
+    vworld_key = "BF677CB9-D1EA-3831-B328-084A9AE3CDCC"
+    satellite_layer = folium.TileLayer(
+        tiles=f"http://api.vworld.kr/req/wmts/1.0.0/{vworld_key}/Satellite/{{z}}/{{y}}/{{x}}.jpeg",
+        attr='VWorld Satellite', 
+        name='위성지도'
+    ).add_to(m)
+
+    # VWorld Hybrid Layer 추가
+    hybrid_layer = folium.TileLayer(
+        tiles=f"http://api.vworld.kr/req/wmts/1.0.0/{vworld_key}/Hybrid/{{z}}/{{y}}/{{x}}.png",
+        attr='VWorld Hybrid', 
+        name='지명표시', 
+        overlay=True
+    ).add_to(m)
+    # 국립공원 경계
+    geojson_data = json.loads(selected_npark_boundary.to_json())
+    folium.GeoJson(
+        geojson_data,
+        name='국립공원 경계',
+        style_function=lambda feature: {
+            'color': 'yellow',
+            'weight': 2,
+            'fillOpacity': 0
+        }
+    ).add_to(m)
+    # GeoJson 레이어 추가
+    folium.GeoJson(
+        first,
+        name="위험도 1등급",
+        style_function=lambda feature: {
+            'fillColor': color_producer(feature['properties']['위험도']),
+            'color': 'black',
+            'weight': 1,
+            'fillOpacity': 0.4
+        },
+        highlight_function=lambda feature: {'weight': 3, 'color': 'blue'},
+        tooltip=folium.GeoJsonTooltip(
+            fields=['formatted_latitude', 'formatted_longitude', '위험도', '고도', '경사도'],
+            aliases=['위도:', '경도:', '위험도:', '고도:', '경사도:'],  # Tooltip 텍스트
+            localize=True
+        ),
+        popup=folium.GeoJsonPopup(
+            fields=['formatted_latitude', 'formatted_longitude', '위험도', '고도', '경사도', ],
+            aliases=['위도:', '경도:', '위험도:', '고도:', '경사도:'],  # 팝업 텍스트
+            localize=True
+        )
+    ).add_to(m)
+
+    # GeoJson 레이어 추가
+    folium.GeoJson(
+        second,
+        name="위험도 2등급",
+        style_function=lambda feature: {
+            'fillColor': color_producer(feature['properties']['위험도']),
+            'color': 'black',
+            'weight': 1,
+            'fillOpacity': 0.4
+        },
+        highlight_function=lambda feature: {'weight': 3, 'color': 'blue'},
+        tooltip=folium.GeoJsonTooltip(
+            fields=['formatted_latitude', 'formatted_longitude', '위험도', '고도', '경사도'],
+            aliases=['위도:', '경도:', '위험도:', '고도:', '경사도:'],  # Tooltip 텍스트
+            localize=True
+        ),
+        popup=folium.GeoJsonPopup(
+            fields=['formatted_latitude', 'formatted_longitude', '위험도', '고도', '경사도', ],
+            aliases=['위도:', '경도:', '위험도:', '고도:', '경사도:'],  # 팝업 텍스트
+            localize=True
+        )
+    ).add_to(m)
+
+    # GeoJson 레이어 추가
+    folium.GeoJson(
+        third,
+        name="위험도 3등급",
+        style_function=lambda feature: {
+            'fillColor': color_producer(feature['properties']['위험도']),
+            'color': 'black',
+            'weight': 1,
+            'fillOpacity': 0.4
+        },
+        highlight_function=lambda feature: {'weight': 3, 'color': 'blue'},
+        tooltip=folium.GeoJsonTooltip(
+            fields=['formatted_latitude', 'formatted_longitude', '위험도', '고도', '경사도'],
+            aliases=['위도:', '경도:', '위험도:', '고도:', '경사도:'],  # Tooltip 텍스트
+            localize=True
+        ),
+        popup=folium.GeoJsonPopup(
+            fields=['formatted_latitude', 'formatted_longitude', '위험도', '고도', '경사도', ],
+            aliases=['위도:', '경도:', '위험도:', '고도:', '경사도:'],  # 팝업 텍스트
+            localize=True
+        )
+    ).add_to(m)
+
+
+    # 안전쉼터 위치를 Marker로 추가
+    shelter_layer = folium.FeatureGroup(name='안전쉼터')
+    for idx, row in shelter.iterrows():
+        # 팝업을 위한 HTML 컨텐츠 생성
+        popup_html = f"""
+        <div style='font-family: "Arial", sans-serif; font-size: 12px;'>
+            <h4>{row['쉼터명']}</h4>
+            <p>위도: {row['geometry'].y:.5f}<br>
+            경도: {row['geometry'].x:.5f}</p>
+        </div>
+        """
+        popup = folium.Popup(popup_html, max_width=250)
+        
+        # 마커 생성 (Font Awesome 아이콘 사용)
+        Marker(
+            location=[row['geometry'].y, row['geometry'].x],  # GeoDataFrame에서 위도, 경도 추출
+            icon=Icon(icon='person-shelter', prefix='fa', color='blue'),  # Font Awesome 아이콘 설정
+            popup=popup
+        ).add_to(shelter_layer)
+
+    shelter_layer.add_to(m)
+
+    # 안전쉼터 위치를 Marker로 추가
+    aed_layer = folium.FeatureGroup(name='AED')
+    for idx, row in aed.iterrows():
+        # 팝업을 위한 HTML 컨텐츠 생성
+        popup_html = f"""
+        <div style='font-family: "Arial", sans-serif; font-size: 12px;'>
+            <h4>{row['명칭']}</h4>
+            <p>위도: {row['geometry'].y:.5f}<br>
+            경도: {row['geometry'].x:.5f}</p>
+        </div>
+        """
+        popup = folium.Popup(popup_html, max_width=250)
+        
+        # 마커 생성 (Font Awesome 아이콘 사용)
+        Marker(
+            location=[row['geometry'].y, row['geometry'].x],  # GeoDataFrame에서 위도, 경도 추출
+            icon=Icon(icon='heart-circle-check', prefix='fa', color='pink', icon_color = 'black'),  # Font Awesome 아이콘 설정
+            popup=popup
+        ).add_to(aed_layer)
+
+    aed_layer.add_to(m)
+
+    # 1000m 이상 거리에 있는 고위험 지역 필터링
+    need_shelter_df = first[first['nearest_shelter_dist'] > resolution]
+    need_shelter_df = need_shelter_df.to_crs(epsg=4326)
+
+    # 설치 지역 레이어 추가
+    need_shelter_layer = folium.FeatureGroup(name='설치 시급 지점')
+    for idx, row in need_shelter_df.iterrows():
+        # 팝업 컨텐츠 정의
+        popup_content = f"""
+        위도: {row['formatted_latitude']}<br>
+        경도: {row['formatted_longitude']}<br>
+        가까운 쉼터와의 거리: {row['nearest_shelter_dist']:.2f}m
+        """
+        popup = folium.Popup(popup_content, max_width=250)
+
+        # 마커 추가
+        Marker(
+            location=[row['geometry'].centroid.y, row['geometry'].centroid.x],
+            popup=popup,
+            icon=Icon(color='red', icon='exclamation-triangle', prefix='fa')  # FontAwesome 아이콘 사용
+        ).add_to(need_shelter_layer)
+
+    need_shelter_layer.add_to(m)
+
+    m.add_child(folium.LayerControl())
+
+    # 점 찍고 점과 점 사이 거리 재기
+    m.add_child(MeasureControl())
+
+    # 모든 지점 위경도 표시
+    m.add_child(
+        folium.LatLngPopup()
+    )
+    
+    template5 = """
+    {% macro html(this, kwargs) %}
+
+    <!doctype html>
+    <html lang="en">
+    <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>jQuery UI Draggable - Default functionality</title>
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+
+    <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    
+    <script>
+    $( function() {
+        $( "#maplegend" ).draggable({
+                        start: function (event, ui) {
+                            $(this).css({
+                                right: "auto",
+                                top: "auto",
+                                bottom: "auto"
+                            });
+                        }
+                    });
+    });
+
+    </script>
+    </head>
+    <body>
+
+    
+    <head>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" integrity="sha384-ekzFgdUyJibDJSR+Jb+wdX4Axq7rKjHcXdMI1a3iFxoZou1GEGq3w5LaD1aMhohc" crossorigin="anonymous">
+    </head>
+    
+    <div id='maplegend' class='maplegend' 
+        style='position: absolute; z-index:9999; border:2px grey; background-color:rgba(255, 255, 255, 0.8);
+        border-radius:6px; padding: 10px; font-size:13px; left: 10px; bottom: 10px;'>
+        
+    <div class='legend-title'>위험도 범례</div>
+    <div class='legend-scale'>
+    <ul class='legend-labels'>
+        <li><span style='background:red;opacity:1;'></span><strong>1등급 : 사고발생확률 95% 이상</strong></li>
+        <li><span style='background:salmon;opacity:1;'></span><strong>2등급 : 사고발생확률 90% 이상</strong></li>
+        <li><span style='background:orange;opacity:1;'></span><strong>3등급 : 사고발생확률 70% 이상</strong></li>
+    </ul>
+    </div>
+    </div>
+    
+    </body>
+    </html>
+
+    <style type='text/css'>
+    .maplegend .legend-title {
+        text-align: left;
+        margin-bottom: 5px;
+        font-weight: bold;
+        font-size: 90%;
+        }
+    .maplegend .legend-scale ul {
+        margin: 0;
+        margin-bottom: 5px;
+        padding: 0;
+        float: left;
+        list-style: none;
+        }
+    .maplegend .legend-scale ul li {
+        font-size: 80%;
+        list-style: none;
+        margin-left: 0;
+        line-height: 18px;
+        margin-bottom: 2px;
+        }
+    .maplegend ul.legend-labels li span {
+        display: block;
+        float: left;
+        height: 16px;
+        width: 30px;
+        margin-right: 5px;
+        margin-left: 0;
+        border: 1px solid #999;
+        }
+    .maplegend .legend-source {
+        font-size: 80%;
+        color: #777;
+        clear: both;
+        }
+    .maplegend a {
+        color: #777;
+        }
+    </style>
+    {% endmacro %}"""
+
+    # Add the legend to the map
+    macro = MacroElement()
+    macro._template = Template(template5)
+    macro.add_to(m)
+    # Map을 저장하거나 표시
+    return m
+
+# 데이터 로딩 함수
+def load_data(park_name):
+    if park_name == "북한산":
+        shelter = gpd.read_file("./data/북한산 안전쉼터.geojson")
+        aed = gpd.read_file("./data/북한산 AED.geojson")
+        fall_gdf = gpd.read_file("./data/북한산 추락사고_gdf.geojson")
+        heart_gdf = gpd.read_file("./data/북한산 심장사고_gdf.geojson")
+    elif park_name == "설악산":
+        shelter = gpd.read_file("./data/설악산 안전쉼터.geojson")
+        aed = gpd.read_file("./data/설악산 AED.geojson")
+        fall_gdf = gpd.read_file("./data/설악산 추락사고_gdf.geojson")
+        heart_gdf = gpd.read_file("./data/설악산 심장사고_gdf.geojson")
+    else:
+        # 기본값 또는 오류 처리
+        shelter = gpd.GeoDataFrame()
+        aed = gpd.GeoDataFrame()
+        fall_gdf = gpd.GeoDataFrame()
+        heart_gdf = gpd.GeoDataFrame()
+
+    return shelter, aed, fall_gdf, heart_gdf
+
 
 #######################
 # Sidebar
@@ -1935,7 +2381,7 @@ with st.sidebar:
     ['전체','1월', '2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'],key='month',default='전체')
     age = st.multiselect('연령대 선택',
     ['전체','20대미만','20대', '30대','40대','50대', '60대', '70대 이상', '미상', '집단'],key='age',default='전체')
-    resolution = st.slider('기존 안전시설물과 사고 핫스팟 중심점 간의 거리(m) 설정', 100, 3000, 500,100,key='distance')
+    resolution = st.slider('기존 안전시설물과 사고 핫스팟 중심점 간의 거리(m) 설정', 500, 3000, 500,100,key='distance')
     st.write('핫스팟 중심점과의 이격거리(m)를 초과한 지점이 곧 핫스팟 내 안전시설물 우선설치 필요 지점 예측을 말해요.')
     button = st.button('분석 시작')
     image1 = './logo/국공.svg'
@@ -2050,10 +2496,14 @@ if button:
         df_AED = pd.read_csv('./data/AED_final.csv')
         df_fall = pd.read_csv('./data/추락위험지역_final.csv')
         safety_place = pd.read_csv("./data/안전쉼터_final.csv")
-        gdf = gpd.read_file("./data/북한산 추락사고_gdf.geojson")
-        bukhan_shelter = gpd.read_file("./data/북한산 안전쉼터.geojson")
-
-
+        # bukhan_shelter = gpd.read_file("./data/북한산 안전쉼터.geojson")
+        # bukhan_aed = gpd.read_file("./data/북한산 AED.geojson")
+        # bukhan_fall_gdf = gpd.read_file("./data/북한산 추락사고_gdf.geojson")
+        # bukhan_heart_gdf = gpd.read_file("./data/북한산 심장사고_gdf.geojson")
+        # seorak_shelter = gpd.read_file("./data/설악산 안전쉼터.geojson")
+        # seorak_aed = gpd.read_file("./data/설악산 AED.geojson")
+        # seorak_fall_gdf = gpd.read_file("./data/설악산 추락사고_gdf.geojson")
+        # seorak_heart_gdf = gpd.read_file("./data/설악산 심장사고_gdf.geojson")
         # #######################
         # npark_boundary = gpd.read_file('./data/npark_boundary.gpkg',layer='npark_boundary')
         # gdf_park_data = gpd.read_file("./data/park_data.gpkg", layer='park_data')
@@ -2068,7 +2518,8 @@ if button:
         selected_npark_boundary_hotspot = find_boundary_hotspot(npark_boundary,selected_national_park)
         selected_national_park_accident = sjoin(gdf_park_data,selected_npark_boundary,selected_national_park)
         selected_national_park_accident_hotspot = sjoin(gdf_park_data,selected_npark_boundary_hotspot,selected_national_park)
-    
+        # 선택된 공원에 따른 데이터 로드
+        shelter, aed, fall_gdf, heart_gdf = load_data(selected_national_park)
         if '전체' not in st.session_state['year']:
              selected_national_park_accident = selected_national_park_accident[selected_national_park_accident['연도'].isin(st.session_state['year'])]
              selected_national_park_accident_hotspot = selected_national_park_accident_hotspot[selected_national_park_accident_hotspot['연도'].isin(st.session_state['year'])]
@@ -2106,7 +2557,7 @@ if button:
 
         with col[1]:
             st.markdown('#### 사고 현황판')
-            tab1, tab2, tab3, tab4, tab5, tap6 = st.tabs(["사고 현황", "전체사고 히트맵","안전쉼터위치 선정","AED위치 선정", "추락위험지역 선정", '북한산 추락사고 예측모델'])
+            tab1, tab2, tab3, tab4, tab5, tap6, tap7 = st.tabs(["사고 현황", "전체사고 히트맵","안전쉼터위치 선정","AED위치 선정", "추락위험지역 선정", '북한산 추락사고 예측', '북한산 심장사고 예측'])
             with tab1:
                 #col1 = st.columns([8.1, 1.9])
                 #with col1[0]:
@@ -2182,8 +2633,18 @@ if button:
                 #col1 = st.columns([8.1, 1.9])
                 #with col1[0]:
                     # 지도 생성
-                m6 = model(gdf)
+                m6 = fall_model(fall_gdf)
                 folium_static(m6)
+                # with col1[1]:
+                #     # Streamlit에 HTML 표시
+                #     st.markdown(html, unsafe_allow_html=True)
+
+            with tap7:
+                #col1 = st.columns([8.1, 1.9])
+                #with col1[0]:
+                    # 지도 생성
+                m7 = heart_model(heart_gdf)
+                folium_static(m7)
                 # with col1[1]:
                 #     # Streamlit에 HTML 표시
                 #     st.markdown(html, unsafe_allow_html=True)
