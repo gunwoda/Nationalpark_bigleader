@@ -2557,7 +2557,7 @@ if button:
 
         with col[1]:
             st.markdown('#### 사고 현황판')
-            tab1, tab2, tab3, tab4, tab5, tap6, tap7 = st.tabs(["사고 현황", "전체사고 히트맵","안전쉼터위치 선정","AED위치 선정", "추락위험지역 선정", '북한산 추락사고 예측', '북한산 심장사고 예측'])
+            tab1, tab2, tab3, tab4, tab5, tap6, tap7 = st.tabs(["사고 현황", "전체사고 히트맵","안전쉼터위치 선정","AED위치 선정", "추락위험지역 선정", '추락사고 예측', '심장사고 예측'])
             with tab1:
                 #col1 = st.columns([8.1, 1.9])
                 #with col1[0]:
