@@ -2246,7 +2246,7 @@ def heart_model(heart_gdf):
         )
     ).add_to(m)
 
-        # 스마트워치 레이어
+    # 스마트워치 레이어
     smartwatch_layer = folium.FeatureGroup(name='스마트워치')
 
     # '심박수' 컬럼에서 사분위수 계산
@@ -2284,17 +2284,11 @@ def heart_model(heart_gdf):
             tooltip=f"심박수: {row['심박수']}"
         ).add_to(m)
 
-    # 레이어를 지도에 추가
-    smartwatch_layer.add_to(m)
-
     # 스마트워치 데이터에서 위도와 경도 컬럼을 추출하여 히트맵에 사용할 데이터 리스트 생성
     heat_data = [[row['위도'], row['경도']] for index, row in park_watch.iterrows()]
 
     # 히트맵 레이어 생성
-    heat_layer = HeatMap(heat_data, radius=15, gradient={0.2: 'blue', 0.4: 'green', 0.6: 'yellow', 0.8: 'orange', 1: 'red'}, name='스마트워치 히트맵')
-
-    # 히트맵 레이어를 지도에 추가
-    heat_layer.add_to(m)
+    heat_layer = plugins.HeatMap(heat_data, radius=15, gradient={0.2: 'blue', 0.4: 'green', 0.6: 'yellow', 0.8: 'orange', 1: 'red'}, name='스마트워치 히트맵')
 
     # 안전쉼터 위치를 Marker로 추가
     shelter_layer = folium.FeatureGroup(name='안전쉼터')
@@ -2319,8 +2313,6 @@ def heart_model(heart_gdf):
             popup=popup
         ).add_to(shelter_layer)
 
-    shelter_layer.add_to(m)
-
     # 안전쉼터 위치를 Marker로 추가
     aed_layer = folium.FeatureGroup(name='AED')
     for idx, row in aed.iterrows():
@@ -2340,8 +2332,6 @@ def heart_model(heart_gdf):
             icon=Icon(icon='heart-circle-check', prefix='fa', color='pink', icon_color = 'black'),  # Font Awesome 아이콘 설정
             popup=popup
         ).add_to(aed_layer)
-
-    aed_layer.add_to(m)
 
     # 1000m 이상 거리에 있는 고위험 지역 필터링
     need_shelter_df = first[first['nearest_shelter_dist'] > resolution]
@@ -2365,20 +2355,25 @@ def heart_model(heart_gdf):
             icon=Icon(color='red', icon='exclamation-triangle', prefix='fa')  # FontAwesome 아이콘 사용
         ).add_to(need_shelter_layer)
 
+    # 모든 레이어 추가
+    shelter_layer.add_to(m)
+    aed_layer.add_to(m)
     need_shelter_layer.add_to(m)
+    smartwatch_layer.add_to(m)
+    trail_layer.add_to(m)
+
+    # 히트맵 레이어 추가
+    heat_layer.add_to(m)
 
     # 모든 지점 위경도 표시
     m.add_child(
         folium.LatLngPopup()
     )
-    
     # 마지막에 레이어 컨트롤러 추가
     LayerControl().add_to(m)
 
     # 점 찍고 점과 점 사이 거리 재기
     m.add_child(MeasureControl())
-
-
     
     template5 = """
     {% macro html(this, kwargs) %}
