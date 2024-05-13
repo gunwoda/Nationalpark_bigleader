@@ -436,18 +436,43 @@ def make_hotspot_safetyplace(selected_national_park_accident,selected_npark_boun
     ).add_to(cluster_layer_콜드스팟)
     cluster_layer_콜드스팟.add_to(m)
     
-    # 안전쉼터 레이어 설정 및 추가
-    shelter_layer = folium.FeatureGroup(name='기존 안전쉼터 설치지점')
-    for idx, row in safety_place.iterrows():
-        folium.CircleMarker(
-            location=(row['위도'], row['경도']),
-            popup=row['쉼터명'],
-            radius=3,
-            color='green',
-            fill=True,
-            fill_color='green',
-            fill_opacity=1
+    # # 안전쉼터 레이어 설정 및 추가
+    # shelter_layer = folium.FeatureGroup(name='기존 안전쉼터 설치지점')
+    # for idx, row in safety_place.iterrows():
+    #     folium.CircleMarker(
+    #         location=(row['위도'], row['경도']),
+    #         popup=row['쉼터명'],
+    #         radius=3,
+    #         color='green',
+    #         fill=True,
+    #         fill_color='green',
+    #         fill_opacity=1
+    #     ).add_to(shelter_layer)
+    # shelter_layer.add_to(m)
+
+    # 안전쉼터 위치를 Marker로 추가
+    shelter_layer = folium.FeatureGroup(name='안전쉼터')
+    for idx, row in shelter.iterrows():
+        # 팝업을 위한 HTML 컨텐츠 생성
+        popup_html = f"""
+        <div style='font-family: "Arial", sans-serif; font-size: 12px;'>
+            <h4>{row['쉼터명']}</h4>
+            <p>위도: {row['geometry'].y:.5f}<br>
+            경도: {row['geometry'].x:.5f}</p>
+        </div>
+        """
+        popup = folium.Popup(popup_html, max_width=250)
+
+        # "대피소"가 쉼터명에 포함되어 있으면 마커 색을 'black'으로 설정
+        icon_color = 'orange' if '대피소' in row['쉼터명'] else 'blue'
+
+        # 마커 생성 (Font Awesome 아이콘 사용)
+        Marker(
+            location=[row['geometry'].y, row['geometry'].x],  # GeoDataFrame에서 위도, 경도 추출
+            icon=Icon(icon='person-shelter', prefix='fa', color=icon_color),  # 조건에 따라 색상 변경
+            popup=popup
         ).add_to(shelter_layer)
+
     shelter_layer.add_to(m)
 
     # 탐방로 레이어 설정 및 추가
@@ -1823,6 +1848,22 @@ def fall_model(fall_gdf):
             'fillOpacity': 0
         }
     ).add_to(m)
+    
+    # 탐방로 레이어 설정 및 추가
+    trail_layer = folium.FeatureGroup(name='탐방로')
+    folium.GeoJson(
+        df_탐방로[df_탐방로.geometry.length > 0.001],
+        name='Trails',
+        style_function=lambda feature: {
+            'fillColor': 'blue',
+            'color': 'blue',
+            'weight': 3,
+            'fillOpacity': 0.4,
+            'opacity': 0.4
+        }
+    ).add_to(trail_layer)
+    trail_layer.add_to(m)
+
     # GeoJson 레이어 추가
     folium.GeoJson(
         first,
@@ -1831,7 +1872,7 @@ def fall_model(fall_gdf):
             'fillColor': color_producer(feature['properties']['위험도']),
             'color': 'black',
             'weight': 1,
-            'fillOpacity': 0.4
+            'fillOpacity': 0.6
         },
         highlight_function=lambda feature: {'weight': 3, 'color': 'blue'},
         tooltip=folium.GeoJsonTooltip(
@@ -1892,6 +1933,30 @@ def fall_model(fall_gdf):
         )
     ).add_to(m)
 
+    # 추락위험지역 설정 및 추가
+    fall_spot_layer = folium.FeatureGroup(name='기존 추락위험지역')
+    for idx, row in df_fall.iterrows():
+        # 팝업을 위한 HTML 컨텐츠 생성
+        popup_html = f"""
+        <div style='font-family: "Arial", sans-serif; font-size: 12px;'>
+            <h4>추락위험지역</h4>
+            <p>세부위치: {row['세부위치']}<br>
+            위도: {row['위도']:.5f}<br>
+            경도: {row['경도']:.5f}</p>
+        </div>
+        """
+        popup = folium.Popup(popup_html, max_width=250)
+        
+        folium.CircleMarker(
+            location=(row['위도'], row['경도']),
+            popup=popup,
+            radius=3,
+            color='purple',
+            fill=True,
+            fill_color='purple',
+            fill_opacity=1
+        ).add_to(fall_spot_layer)
+    fall_spot_layer.add_to(m)
 
     # 안전쉼터 위치를 Marker로 추가
     shelter_layer = folium.FeatureGroup(name='안전쉼터')
@@ -1905,11 +1970,14 @@ def fall_model(fall_gdf):
         </div>
         """
         popup = folium.Popup(popup_html, max_width=250)
-        
+
+        # "대피소"가 쉼터명에 포함되어 있으면 마커 색을 'black'으로 설정
+        icon_color = 'orange' if '대피소' in row['쉼터명'] else 'blue'
+
         # 마커 생성 (Font Awesome 아이콘 사용)
         Marker(
             location=[row['geometry'].y, row['geometry'].x],  # GeoDataFrame에서 위도, 경도 추출
-            icon=Icon(icon='person-shelter', prefix='fa', color='blue'),  # Font Awesome 아이콘 설정
+            icon=Icon(icon='person-shelter', prefix='fa', color=icon_color),  # 조건에 따라 색상 변경
             popup=popup
         ).add_to(shelter_layer)
 
@@ -2092,6 +2160,23 @@ def heart_model(heart_gdf):
             'fillOpacity': 0
         }
     ).add_to(m)
+
+    # 탐방로 레이어 설정 및 추가
+    trail_layer = folium.FeatureGroup(name='탐방로')
+    folium.GeoJson(
+        df_탐방로[df_탐방로.geometry.length > 0.001],
+        name='Trails',
+        style_function=lambda feature: {
+            'fillColor': 'blue',
+            'color': 'blue',
+            'weight': 3,
+            'fillOpacity': 0.4,
+            'opacity': 0.4
+        }
+    ).add_to(trail_layer)
+
+    trail_layer.add_to(m)
+    
     # GeoJson 레이어 추가
     folium.GeoJson(
         first,
@@ -2100,7 +2185,7 @@ def heart_model(heart_gdf):
             'fillColor': color_producer(feature['properties']['위험도']),
             'color': 'black',
             'weight': 1,
-            'fillOpacity': 0.4
+            'fillOpacity': 0.6
         },
         highlight_function=lambda feature: {'weight': 3, 'color': 'blue'},
         tooltip=folium.GeoJsonTooltip(
@@ -2161,6 +2246,55 @@ def heart_model(heart_gdf):
         )
     ).add_to(m)
 
+        # 스마트워치 레이어
+    smartwatch_layer = folium.FeatureGroup(name='스마트워치')
+
+    # '심박수' 컬럼에서 사분위수 계산
+    Q1 = park_watch['심박수'].quantile(0.25)
+    Q3 = park_watch['심박수'].quantile(0.75)
+    IQR = Q3 - Q1
+    outlier_threshold = Q3 + 1.5 * IQR
+
+    # 3사분위수 이상의 심박수 계산
+    high_heart_rate_threshold = park_watch['심박수'].quantile(0.75)
+
+    for idx, row in park_watch.iterrows():
+        # 색상 설정
+        if row['심박수'] > outlier_threshold:
+            color = '#664724'
+            fill_opacity = 0.7,
+            opacity = 0.7
+        elif row['심박수'] >= high_heart_rate_threshold:
+            color = '#BC8344'
+            fill_opacity = 0.5,
+            opacity = 0.5
+        else:
+            color = '#E1C6A9' 
+            fill_opacity = 0.5,
+            opacity = 0.5
+        # 스마트워치 데이터의 위도와 경도 위치에 마커를 추가
+        folium.CircleMarker(
+            location=(row['위도'], row['경도']),
+            radius=3,
+            color=color,
+            fill=True,
+            fill_color=color,
+            fill_opacity=fill_opacity,
+            opacity = opacity,
+            tooltip=f"심박수: {row['심박수']}"
+        ).add_to(m)
+
+    # 레이어를 지도에 추가
+    smartwatch_layer.add_to(m)
+
+    # 스마트워치 데이터에서 위도와 경도 컬럼을 추출하여 히트맵에 사용할 데이터 리스트 생성
+    heat_data = [[row['위도'], row['경도']] for index, row in park_watch.iterrows()]
+
+    # 히트맵 레이어 생성
+    heat_layer = HeatMap(heat_data, radius=15, gradient={0.2: 'blue', 0.4: 'green', 0.6: 'yellow', 0.8: 'orange', 1: 'red'}, name='스마트워치 히트맵')
+
+    # 히트맵 레이어를 지도에 추가
+    heat_layer.add_to(m)
 
     # 안전쉼터 위치를 Marker로 추가
     shelter_layer = folium.FeatureGroup(name='안전쉼터')
@@ -2174,11 +2308,14 @@ def heart_model(heart_gdf):
         </div>
         """
         popup = folium.Popup(popup_html, max_width=250)
-        
+
+        # "대피소"가 쉼터명에 포함되어 있으면 마커 색을 'black'으로 설정
+        icon_color = 'orange' if '대피소' in row['쉼터명'] else 'blue'
+
         # 마커 생성 (Font Awesome 아이콘 사용)
         Marker(
             location=[row['geometry'].y, row['geometry'].x],  # GeoDataFrame에서 위도, 경도 추출
-            icon=Icon(icon='person-shelter', prefix='fa', color='blue'),  # Font Awesome 아이콘 설정
+            icon=Icon(icon='person-shelter', prefix='fa', color=icon_color),  # 조건에 따라 색상 변경
             popup=popup
         ).add_to(shelter_layer)
 
@@ -2230,15 +2367,18 @@ def heart_model(heart_gdf):
 
     need_shelter_layer.add_to(m)
 
-    m.add_child(folium.LayerControl())
-
-    # 점 찍고 점과 점 사이 거리 재기
-    m.add_child(MeasureControl())
-
     # 모든 지점 위경도 표시
     m.add_child(
         folium.LatLngPopup()
     )
+    
+    # 마지막에 레이어 컨트롤러 추가
+    LayerControl().add_to(m)
+
+    # 점 찍고 점과 점 사이 거리 재기
+    m.add_child(MeasureControl())
+
+
     
     template5 = """
     {% macro html(this, kwargs) %}
@@ -2339,28 +2479,31 @@ def heart_model(heart_gdf):
     macro._template = Template(template5)
     macro.add_to(m)
     # Map을 저장하거나 표시
+
     return m
 
-# 데이터 로딩 함수
 def load_data(park_name):
     if park_name == "북한산":
         shelter = gpd.read_file("./data/북한산 안전쉼터.geojson")
         aed = gpd.read_file("./data/북한산 AED.geojson")
-        fall_gdf = gpd.read_file("./data/북한산 추락사고_gdf.geojson")
-        heart_gdf = gpd.read_file("./data/북한산 심장사고_gdf.geojson")
+        fall_gdf = gpd.read_file("./data/북한산 추락사고(100)_gdf.geojson")
+        heart_gdf = gpd.read_file("./data/북한산 심장사고(100)_gdf.geojson")
+        park_watch = smartwatch[smartwatch['국립공원'] == '북한산']
     elif park_name == "설악산":
         shelter = gpd.read_file("./data/설악산 안전쉼터.geojson")
         aed = gpd.read_file("./data/설악산 AED.geojson")
-        fall_gdf = gpd.read_file("./data/설악산 추락사고_gdf.geojson")
-        heart_gdf = gpd.read_file("./data/설악산 심장사고_gdf.geojson")
+        fall_gdf = gpd.read_file("./data/설악산 추락사고(100)_gdf.geojson")
+        heart_gdf = gpd.read_file("./data/설악산 심장사고(100)_gdf.geojson")
+        park_watch = smartwatch[smartwatch['국립공원'] == '설악산']
     else:
         # 기본값 또는 오류 처리
         shelter = gpd.GeoDataFrame()
         aed = gpd.GeoDataFrame()
         fall_gdf = gpd.GeoDataFrame()
         heart_gdf = gpd.GeoDataFrame()
+        park_watch = gpd.GeoDataFrame()
+    return shelter, aed, fall_gdf, heart_gdf, park_watch
 
-    return shelter, aed, fall_gdf, heart_gdf
 
 
 #######################
@@ -2496,6 +2639,7 @@ if button:
         df_AED = pd.read_csv('./data/AED_final.csv')
         df_fall = pd.read_csv('./data/추락위험지역_final.csv')
         safety_place = pd.read_csv("./data/안전쉼터_final.csv")
+        smartwatch = gpd.read_file("./data/smartwatch_gdf.geojson")
         # bukhan_shelter = gpd.read_file("./data/북한산 안전쉼터.geojson")
         # bukhan_aed = gpd.read_file("./data/북한산 AED.geojson")
         # bukhan_fall_gdf = gpd.read_file("./data/북한산 추락사고_gdf.geojson")
@@ -2519,7 +2663,7 @@ if button:
         selected_national_park_accident = sjoin(gdf_park_data,selected_npark_boundary,selected_national_park)
         selected_national_park_accident_hotspot = sjoin(gdf_park_data,selected_npark_boundary_hotspot,selected_national_park)
         # 선택된 공원에 따른 데이터 로드
-        shelter, aed, fall_gdf, heart_gdf = load_data(selected_national_park)
+        shelter, aed, fall_gdf, heart_gdf, park_watch  = load_data(selected_national_park)
         if '전체' not in st.session_state['year']:
              selected_national_park_accident = selected_national_park_accident[selected_national_park_accident['연도'].isin(st.session_state['year'])]
              selected_national_park_accident_hotspot = selected_national_park_accident_hotspot[selected_national_park_accident_hotspot['연도'].isin(st.session_state['year'])]
@@ -2557,7 +2701,7 @@ if button:
 
         with col[1]:
             st.markdown('#### 사고 현황판')
-            tab1, tab2, tab3, tab4, tab5, tap6, tap7 = st.tabs(["사고 현황", "전체사고 히트맵","안전쉼터위치 선정","AED위치 선정", "추락위험지역 선정", '추락사고 예측', '심장사고 예측'])
+            tab1, tab2, tab3, tab4, tab5, tap6, tap7 = st.tabs(["사고 현황", "전체사고 히트맵","추락사고 예측","심장사고 예측", "추락위험지역 선정", '안전쉼터위치 선정', 'AED위치 선정'])
             with tab1:
                 #col1 = st.columns([8.1, 1.9])
                 #with col1[0]:
@@ -2599,25 +2743,22 @@ if button:
             with tab3:
                 #col1 = st.columns([8.1, 1.9])
                 #with col1[0]:
-                    # 지도 생성
-                m3 = make_hotspot_safetyplace(selected_national_park_accident_hotspot,selected_npark_boundary_hotspot,safety_place,st.session_state['distance'])
+                # 지도 생성
+                m3 = fall_model(fall_gdf)
                 folium_static(m3)
-                    #st.image(img_byte_arr, use_column_width=True)
                 # with col1[1]:
                 #     # Streamlit에 HTML 표시
                 #     st.markdown(html, unsafe_allow_html=True)
-                
 
             with tab4:
                 #col1 = st.columns([8.1, 1.9])
                 #with col1[0]:
-                    # 지도 생성
-                m4 = make_hotspot_heart(selected_national_park_accident_hotspot,selected_npark_boundary_hotspot,df_AED,st.session_state['distance'])
+                # 지도 생성
+                m4 = heart_model(heart_gdf)
                 folium_static(m4)
                 # with col1[1]:
                 #     # Streamlit에 HTML 표시
                 #     st.markdown(html, unsafe_allow_html=True)
-                
 
             with tab5:
                 #col1 = st.columns([8.1, 1.9])
@@ -2633,18 +2774,19 @@ if button:
                 #col1 = st.columns([8.1, 1.9])
                 #with col1[0]:
                     # 지도 생성
-                m6 = fall_model(fall_gdf)
+                m6 = make_hotspot_safetyplace(selected_national_park_accident_hotspot,selected_npark_boundary_hotspot,safety_place,st.session_state['distance'])
                 folium_static(m6)
+                    #st.image(img_byte_arr, use_column_width=True)
                 # with col1[1]:
                 #     # Streamlit에 HTML 표시
-                #     st.markdown(html, unsafe_allow_html=True)
+                #     st.markdown(html, unsafe_allow_html=True)   
 
             with tap7:
                 #col1 = st.columns([8.1, 1.9])
                 #with col1[0]:
                     # 지도 생성
-                m7 = heart_model(heart_gdf)
+                m7 = make_hotspot_heart(selected_national_park_accident_hotspot,selected_npark_boundary_hotspot,df_AED,st.session_state['distance'])
                 folium_static(m7)
                 # with col1[1]:
                 #     # Streamlit에 HTML 표시
-                #     st.markdown(html, unsafe_allow_html=True)
+                #     st.markdown(html, unsafe_allow_html=True) 
