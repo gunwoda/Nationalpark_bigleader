@@ -2262,15 +2262,15 @@ def heart_model(heart_gdf):
         # 색상 설정
         if row['심박수'] > outlier_threshold:
             color = '#664724'
-            fill_opacity = 0.7,
+            fill_opacity = 0.7
             opacity = 0.7
         elif row['심박수'] >= high_heart_rate_threshold:
             color = '#BC8344'
-            fill_opacity = 0.5,
+            fill_opacity = 0.5
             opacity = 0.5
         else:
-            color = '#E1C6A9' 
-            fill_opacity = 0.5,
+            color = '#E1C6A9'
+            fill_opacity = 0.5
             opacity = 0.5
         # 스마트워치 데이터의 위도와 경도 위치에 마커를 추가
         folium.CircleMarker(
@@ -2280,9 +2280,9 @@ def heart_model(heart_gdf):
             fill=True,
             fill_color=color,
             fill_opacity=fill_opacity,
-            opacity = opacity,
+            opacity=opacity,
             tooltip=f"심박수: {row['심박수']}"
-        ).add_to(m)
+        ).add_to(smartwatch_layer)
 
     # 스마트워치 데이터에서 위도와 경도 컬럼을 추출하여 히트맵에 사용할 데이터 리스트 생성
     heat_data = [[row['위도'], row['경도']] for index, row in park_watch.iterrows()]
@@ -2694,94 +2694,140 @@ if button:
                     """, unsafe_allow_html=True)
 
 
+        # with col[1]:
+        #     st.markdown('#### 사고 현황판')
+        #     tab1, tab2, tab3, tab4, tab5, tap6, tap7 = st.tabs(["사고 현황", "전체사고 히트맵","추락사고 예측","심장사고 예측", "추락위험지역 선정", '안전쉼터위치 선정', 'AED위치 선정'])
+        #     with tab1:
+        #         #col1 = st.columns([8.1, 1.9])
+        #         #with col1[0]:
+        #             # 지도 생성
+        #         m,color_dict = make_pointplot(selected_national_park_accident,selected_npark_boundary)
+        #         folium_static(m)
+
+        #             # 이미지를 바이트로 변환
+        #             #image = Image.open("./legend.png")  # 이미지 경로를 수정하세요
+        #             #img_byte_arr = io.BytesIO()
+        #             #image.save(img_byte_arr, format='PNG')
+        #             #img_byte_arr = img_byte_arr.getvalue()
+        #             #st.image(img_byte_arr, use_column_width=True)
+
+        #             #st.markdown("""<div class="content">
+        #             #<p> → 좌측 사이드바를 닫으시면 범례 정보를 더 큰 글씨로 만나보실 수 있어요.
+        #             #</div>
+        #             #""",unsafe_allow_html=True)
+
+        #             #with col1[1]:
+        #             # # 데이터 준비
+        #             # df = pd.DataFrame(list(color_dict.items()), columns=['유형', '범례'])
+        #             # # 색상을 나타내는 HTML 코드로 셀을 변환
+        #             # df['범례'] = df['범례'].apply(lambda x: f'<div style="width: 26px; height: 20px; background-color: {x};"></div>')
+
+        #             # # DataFrame을 HTML로 변환
+        #             # html = df.to_html(escape=False,index=False)
+
+        #             # # Streamlit에 HTML 표시
+        #             # st.markdown(html, unsafe_allow_html=True)
+
+
+            
+        #     with tab2:
+        #         # 지도 생성
+        #         m2 = make_heatmap(selected_national_park_accident,selected_npark_boundary)
+        #         folium_static(m2)
+            
+        #     with tab3:
+        #         #col1 = st.columns([8.1, 1.9])
+        #         #with col1[0]:
+        #         # 지도 생성
+        #         m3 = fall_model(fall_gdf)
+        #         folium_static(m3)
+        #         # with col1[1]:
+        #         #     # Streamlit에 HTML 표시
+        #         #     st.markdown(html, unsafe_allow_html=True)
+
+        #     with tab4:
+        #         #col1 = st.columns([8.1, 1.9])
+        #         #with col1[0]:
+        #         # 지도 생성
+        #         m4 = heart_model(heart_gdf)
+        #         folium_static(m4)
+        #         # with col1[1]:
+        #         #     # Streamlit에 HTML 표시
+        #         #     st.markdown(html, unsafe_allow_html=True)
+
+        #     with tab5:
+        #         #col1 = st.columns([8.1, 1.9])
+        #         #with col1[0]:
+        #             # 지도 생성
+        #         m5 = make_hotspot_fall(selected_national_park_accident_hotspot,selected_npark_boundary_hotspot,df_fall,st.session_state['distance'])
+        #         folium_static(m5)
+        #         # with col1[1]:
+        #         #     # Streamlit에 HTML 표시
+        #         #     st.markdown(html, unsafe_allow_html=True)
+                
+        #     with tap6:
+        #         #col1 = st.columns([8.1, 1.9])
+        #         #with col1[0]:
+        #             # 지도 생성
+        #         m6 = make_hotspot_safetyplace(selected_national_park_accident_hotspot,selected_npark_boundary_hotspot,safety_place,st.session_state['distance'])
+        #         folium_static(m6)
+        #             #st.image(img_byte_arr, use_column_width=True)
+        #         # with col1[1]:
+        #         #     # Streamlit에 HTML 표시
+        #         #     st.markdown(html, unsafe_allow_html=True)   
+
+        #     with tap7:
+        #         #col1 = st.columns([8.1, 1.9])
+        #         #with col1[0]:
+        #             # 지도 생성
+        #         m7 = make_hotspot_heart(selected_national_park_accident_hotspot,selected_npark_boundary_hotspot,df_AED,st.session_state['distance'])
+        #         folium_static(m7)
+        #         # with col1[1]:
+        #         #     # Streamlit에 HTML 표시
+        #         #     st.markdown(html, unsafe_allow_html=True) 
+        
         with col[1]:
             st.markdown('#### 사고 현황판')
-            tab1, tab2, tab3, tab4, tab5, tap6, tap7 = st.tabs(["사고 현황", "전체사고 히트맵","추락사고 예측","심장사고 예측", "추락위험지역 선정", '안전쉼터위치 선정', 'AED위치 선정'])
-            with tab1:
-                #col1 = st.columns([8.1, 1.9])
-                #with col1[0]:
-                    # 지도 생성
-                m,color_dict = make_pointplot(selected_national_park_accident,selected_npark_boundary)
+
+            if selected_national_park in ['북한산', '설악산']:
+                tabs = st.tabs(["사고 현황", "전체사고 히트맵", "추락사고 예측", "심장사고 예측", "추락위험지역 선정", '안전쉼터위치 선정', 'AED위치 선정'])
+            else:
+                tabs = st.tabs(["사고 현황", "전체사고 히트맵", "추락위험지역 선정", '안전쉼터위치 선정', 'AED위치 선정'])
+
+            with tabs[0]:
+                # 지도 생성
+                m, color_dict = make_pointplot(selected_national_park_accident, selected_npark_boundary)
                 folium_static(m)
 
-                    # 이미지를 바이트로 변환
-                    #image = Image.open("./legend.png")  # 이미지 경로를 수정하세요
-                    #img_byte_arr = io.BytesIO()
-                    #image.save(img_byte_arr, format='PNG')
-                    #img_byte_arr = img_byte_arr.getvalue()
-                    #st.image(img_byte_arr, use_column_width=True)
-
-                    #st.markdown("""<div class="content">
-                    #<p> → 좌측 사이드바를 닫으시면 범례 정보를 더 큰 글씨로 만나보실 수 있어요.
-                    #</div>
-                    #""",unsafe_allow_html=True)
-
-                    #with col1[1]:
-                    # # 데이터 준비
-                    # df = pd.DataFrame(list(color_dict.items()), columns=['유형', '범례'])
-                    # # 색상을 나타내는 HTML 코드로 셀을 변환
-                    # df['범례'] = df['범례'].apply(lambda x: f'<div style="width: 26px; height: 20px; background-color: {x};"></div>')
-
-                    # # DataFrame을 HTML로 변환
-                    # html = df.to_html(escape=False,index=False)
-
-                    # # Streamlit에 HTML 표시
-                    # st.markdown(html, unsafe_allow_html=True)
-
-
-            
-            with tab2:
+            with tabs[1]:
                 # 지도 생성
-                m2 = make_heatmap(selected_national_park_accident,selected_npark_boundary)
+                m2 = make_heatmap(selected_national_park_accident, selected_npark_boundary)
                 folium_static(m2)
-            
-            with tab3:
-                #col1 = st.columns([8.1, 1.9])
-                #with col1[0]:
-                # 지도 생성
-                m3 = fall_model(fall_gdf)
-                folium_static(m3)
-                # with col1[1]:
-                #     # Streamlit에 HTML 표시
-                #     st.markdown(html, unsafe_allow_html=True)
-
-            with tab4:
-                #col1 = st.columns([8.1, 1.9])
-                #with col1[0]:
-                # 지도 생성
-                m4 = heart_model(heart_gdf)
-                folium_static(m4)
-                # with col1[1]:
-                #     # Streamlit에 HTML 표시
-                #     st.markdown(html, unsafe_allow_html=True)
-
-            with tab5:
-                #col1 = st.columns([8.1, 1.9])
-                #with col1[0]:
+            tab_index = 2
+            if selected_national_park in ['북한산', '설악산']:
+                with tabs[tab_index]:
                     # 지도 생성
-                m5 = make_hotspot_fall(selected_national_park_accident_hotspot,selected_npark_boundary_hotspot,df_fall,st.session_state['distance'])
-                folium_static(m5)
-                # with col1[1]:
-                #     # Streamlit에 HTML 표시
-                #     st.markdown(html, unsafe_allow_html=True)
+                    m3 = fall_model(fall_gdf)
+                    folium_static(m3)
+
+                with tabs[tab_index + 1]:
+                    # 지도 생성
+                    m4 = heart_model(heart_gdf)
+                    folium_static(m4)
                 
-            with tap6:
-                #col1 = st.columns([8.1, 1.9])
-                #with col1[0]:
-                    # 지도 생성
-                m6 = make_hotspot_safetyplace(selected_national_park_accident_hotspot,selected_npark_boundary_hotspot,safety_place,st.session_state['distance'])
-                folium_static(m6)
-                    #st.image(img_byte_arr, use_column_width=True)
-                # with col1[1]:
-                #     # Streamlit에 HTML 표시
-                #     st.markdown(html, unsafe_allow_html=True)   
+                tab_index += 2
 
-            with tap7:
-                #col1 = st.columns([8.1, 1.9])
-                #with col1[0]:
-                    # 지도 생성
-                m7 = make_hotspot_heart(selected_national_park_accident_hotspot,selected_npark_boundary_hotspot,df_AED,st.session_state['distance'])
+            with tabs[tab_index]:
+                # 지도 생성
+                m5 = make_hotspot_fall(selected_national_park_accident_hotspot, selected_npark_boundary_hotspot, df_fall, st.session_state['distance'])
+                folium_static(m5)
+
+            with tabs[tab_index + 1]:
+                # 지도 생성
+                m6 = make_hotspot_safetyplace(selected_national_park_accident_hotspot, selected_npark_boundary_hotspot, safety_place, st.session_state['distance'])
+                folium_static(m6)
+
+            with tabs[tab_index + 2]:
+                # 지도 생성
+                m7 = make_hotspot_heart(selected_national_park_accident_hotspot, selected_npark_boundary_hotspot, df_AED, st.session_state['distance'])
                 folium_static(m7)
-                # with col1[1]:
-                #     # Streamlit에 HTML 표시
-                #     st.markdown(html, unsafe_allow_html=True) 
