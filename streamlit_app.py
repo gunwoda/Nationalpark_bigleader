@@ -2248,46 +2248,32 @@ def heart_model(heart_gdf):
 
     # 스마트워치 레이어
     smartwatch_layer = folium.FeatureGroup(name='스마트워치')
-
-    # '심박수' 컬럼에서 사분위수 계산
     Q1 = park_watch['심박수'].quantile(0.25)
     Q3 = park_watch['심박수'].quantile(0.75)
     IQR = Q3 - Q1
     outlier_threshold = Q3 + 1.5 * IQR
-
-    # 3사분위수 이상의 심박수 계산
     high_heart_rate_threshold = park_watch['심박수'].quantile(0.75)
 
     for idx, row in park_watch.iterrows():
-        # 색상 설정
         if row['심박수'] > outlier_threshold:
             color = '#664724'
-            fill_opacity = 0.7
-            opacity = 0.7
         elif row['심박수'] >= high_heart_rate_threshold:
             color = '#BC8344'
-            fill_opacity = 0.5
-            opacity = 0.5
         else:
             color = '#E1C6A9'
-            fill_opacity = 0.5
-            opacity = 0.5
-        # 스마트워치 데이터의 위도와 경도 위치에 마커를 추가
         folium.CircleMarker(
             location=(row['위도'], row['경도']),
             radius=3,
             color=color,
             fill=True,
             fill_color=color,
-            fill_opacity=fill_opacity,
-            opacity=opacity,
+            fill_opacity=0.5,
+            opacity=0.5,
             tooltip=f"심박수: {row['심박수']}"
         ).add_to(smartwatch_layer)
 
-    # 스마트워치 데이터에서 위도와 경도 컬럼을 추출하여 히트맵에 사용할 데이터 리스트 생성
-    heat_data = [[row['위도'], row['경도']] for index, row in park_watch.iterrows()]
-
     # 히트맵 레이어 생성
+    heat_data = [[row['위도'], row['경도']] for index, row in park_watch.iterrows()]
     heat_layer = plugins.HeatMap(heat_data, radius=15, gradient={0.2: 'blue', 0.4: 'green', 0.6: 'yellow', 0.8: 'orange', 1: 'red'}, name='스마트워치 히트맵')
 
     # 안전쉼터 위치를 Marker로 추가
@@ -2361,19 +2347,19 @@ def heart_model(heart_gdf):
     need_shelter_layer.add_to(m)
     smartwatch_layer.add_to(m)
     trail_layer.add_to(m)
-
-    # 히트맵 레이어 추가
+    smartwatch_layer.add_to(m)
     heat_layer.add_to(m)
+
+    # 점 찍고 점과 점 사이 거리 재기
+    m.add_child(MeasureControl())
 
     # 모든 지점 위경도 표시
     m.add_child(
         folium.LatLngPopup()
     )
-    # 마지막에 레이어 컨트롤러 추가
-    LayerControl().add_to(m)
 
-    # 점 찍고 점과 점 사이 거리 재기
-    m.add_child(MeasureControl())
+    # 레이어 켜고 끄는 컨트롤 추가
+    LayerControl().add_to(m)
     
     template5 = """
     {% macro html(this, kwargs) %}
