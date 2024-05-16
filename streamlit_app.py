@@ -773,8 +773,9 @@ def make_hotspot_safetyplace(selected_national_park_accident,selected_npark_boun
     <div class='legend-title'>범례</div>
     <div class='legend-scale'>
     <ul class='legend-labels'>
-        <li><span style='background:#417E23;opacity:1;'></span><strong>기존 안전쉼터 설치지점</strong></li>
-        <li><span style='font-size: 14px;'><i class="fas fa-house" style="color: #83AE41;"></i></span><strong>안전쉼터 추가설치 예측지점</strong></li>
+        <li><span style='background:#6EA8D8;opacity:1;'></span><strong>기존 안전쉼터 설치지점</strong></li>
+        <li><span style='background:#83AE41;opacity:1;'></span><strong>안전쉼터 추가설치 예측지</strong></li>
+        <li><span style='background:#DC9948;opacity:1;'></span><strong>기존 대피소 설치지점</strong></li>
 
     </ul>
     </div>
