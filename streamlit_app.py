@@ -2846,9 +2846,9 @@ if button:
                     <div class='legend-title'>스마트워치 심박수 데이터 범례</div>
                     <div class='legend-scale'>
                     <ul class='legend-labels'>
-                        <li><span style='background:#417E23;opacity:1;'></span><strong>전체 데이터 75% 미만 범위</strong></li>
-                        <li><span style='background:#417E23;opacity:1;'></span><strong>전체 데이터 75% 이상 범위</strong></li>
-                        <li><span style='background:#417E23;opacity:1;'></span><strong>이상치</strong></li>
+                        <li><span style='background:#E1C6A9;opacity:1;'></span><strong>전체 데이터 75% 미만 범위</strong></li>
+                        <li><span style='background:#BC8344;opacity:1;'></span><strong>전체 데이터 75% 이상 범위</strong></li>
+                        <li><span style='background:#664724;opacity:1;'></span><strong>기존 범위에서 벗어난 이상치</strong></li>
                 
                 
                     </ul>
