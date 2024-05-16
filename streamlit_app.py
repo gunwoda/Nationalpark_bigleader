@@ -2640,6 +2640,17 @@ if button:
         safety_place = safety_place[safety_place['국립공원명']==selected_national_park]
         df_AED = df_AED[df_AED['국립공원명']==selected_national_park]
         df_fall = df_fall[df_fall['국립공원명']==selected_national_park]
+        # Point 객체로 변환하여 geometry 컬럼 생성
+        geometry = [Point(xy) for xy in zip(df_fall['경도'], df_fall['위도'])]
+
+        # GeoDataFrame 생성
+        df_fall = gpd.GeoDataFrame(df_fall, geometry=geometry)
+
+        # 좌표계 설정 (WGS84: EPSG 4326)
+        df_fall.set_crs(epsg=4326, inplace=True)
+
+        df_fall = gpd.sjoin(df_fall,npark_boundary)
+
         selected_npark_boundary = find_boundary(npark_boundary,selected_national_park)
         selected_npark_boundary_hotspot = find_boundary_hotspot(npark_boundary,selected_national_park)
         selected_national_park_accident = sjoin(gdf_park_data,selected_npark_boundary,selected_national_park)
