@@ -660,7 +660,7 @@ def make_hotspot_safetyplace(selected_national_park_accident,selected_npark_boun
     
     <div id='maplegend' class='maplegend' 
         style='position: absolute; z-index:9999; border:2px grey; background-color:rgba(255, 255, 255, 0.8);
-        border-radius:6px; padding: 10px; font-size:13px; left: 10px; bottom: 110px;'>
+        border-radius:6px; padding: 10px; font-size:13px; left: 10px; bottom: 130px;'>
         
     <div class='legend-title'>사고원인 범례</div>
     <div class='legend-scale'>
