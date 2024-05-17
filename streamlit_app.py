@@ -2360,7 +2360,7 @@ def heart_model(heart_gdf):
 
     # 레이어 켜고 끄는 컨트롤 추가
     LayerControl().add_to(m)
-    
+
     template5 = """
     {% macro html(this, kwargs) %}
 
@@ -2476,6 +2476,12 @@ def load_data(park_name):
         fall_gdf = gpd.read_file("./data/설악산 추락사고(100)_gdf.geojson")
         heart_gdf = gpd.read_file("./data/설악산 심장사고(100)_gdf.geojson")
         park_watch = smartwatch[smartwatch['국립공원'] == '설악산']
+    elif park_name == "무등산":
+        shelter = gpd.read_file("./data/무등산 안전쉼터.geojson")
+        aed = gpd.read_file("./data/무등산 AED.geojson")
+        fall_gdf = gpd.read_file("./data/무등산 추락사고(100)_gdf.geojson")
+        heart_gdf = gpd.read_file("./data/무등산 심장사고(100)_gdf.geojson")
+        park_watch = smartwatch[smartwatch['국립공원'] == '무등산']
     else:
         # 기본값 또는 오류 처리
         shelter = gpd.GeoDataFrame()
@@ -2775,7 +2781,7 @@ if button:
         with col[1]:
             st.markdown('#### 사고 현황판')
 
-            if selected_national_park in ['북한산', '설악산']:
+            if selected_national_park in ['북한산', '설악산', '무등산']:
                 tabs = st.tabs(["사고 현황", "전체사고 히트맵", "추락사고 예측", "심장사고 예측", "추락위험지역 선정", '안전쉼터위치 선정', 'AED위치 선정'])
             else:
                 tabs = st.tabs(["사고 현황", "전체사고 히트맵", "추락위험지역 선정", '안전쉼터위치 선정', 'AED위치 선정'])
@@ -2790,7 +2796,7 @@ if button:
                 m2 = make_heatmap(selected_national_park_accident, selected_npark_boundary)
                 folium_static(m2)
             tab_index = 2
-            if selected_national_park in ['북한산', '설악산']:
+            if selected_national_park in ['북한산', '설악산', '무등산']:
                 with tabs[tab_index]:
                     # 지도 생성
                     m3 = fall_model(fall_gdf)
