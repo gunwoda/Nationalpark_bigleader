@@ -660,7 +660,7 @@ def make_hotspot_safetyplace(selected_national_park_accident,selected_npark_boun
     
     <div id='maplegend' class='maplegend' 
         style='position: absolute; z-index:9999; border:2px grey; background-color:rgba(255, 255, 255, 0.8);
-        border-radius:6px; padding: 10px; font-size:13px; left: 10px; bottom: 110px;'>
+        border-radius:6px; padding: 10px; font-size:13px; left: 10px; bottom: 150px;'>
         
     <div class='legend-title'>사고원인 범례</div>
     <div class='legend-scale'>
@@ -773,8 +773,9 @@ def make_hotspot_safetyplace(selected_national_park_accident,selected_npark_boun
     <div class='legend-title'>범례</div>
     <div class='legend-scale'>
     <ul class='legend-labels'>
-        <li><span style='background:#417E23;opacity:1;'></span><strong>기존 안전쉼터 설치지점</strong></li>
-        <li><span style='font-size: 14px;'><i class="fas fa-house" style="color: #83AE41;"></i></span><strong>안전쉼터 추가설치 예측지점</strong></li>
+        <li><span style='background:#6EA8D8;opacity:1;'></span><strong>기존 안전쉼터 설치지점</strong></li>
+        <li><span style='background:#83AE41;opacity:1;'></span><strong>안전쉼터 추가설치 예측지점</strong></li>
+        <li><span style='background:#DC9948;opacity:1;'></span><strong>기존 대피소 설치지점</strong></li>
 
     </ul>
     </div>
@@ -2272,6 +2273,8 @@ def heart_model(heart_gdf):
             tooltip=f"심박수: {row['심박수']}"
         ).add_to(smartwatch_layer)
 
+    
+
     # 히트맵 레이어 생성
     heat_data = [[row['위도'], row['경도']] for index, row in park_watch.iterrows()]
     heat_layer = plugins.HeatMap(heat_data, radius=15, gradient={0.2: 'blue', 0.4: 'green', 0.6: 'yellow', 0.8: 'orange', 1: 'red'}, name='스마트워치 히트맵')
@@ -2349,6 +2352,105 @@ def heart_model(heart_gdf):
     trail_layer.add_to(m)
     smartwatch_layer.add_to(m)
     heat_layer.add_to(m)
+    template5 = """
+    {% macro html(this, kwargs) %}
+
+    <!doctype html>
+    <html lang="en">
+    <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>jQuery UI Draggable - Default functionality</title>
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+
+    <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    
+    <script>
+    $( function() {
+        $( "#maplegend2" ).draggable({
+                        start: function (event, ui) {
+                            $(this).css({
+                                right: "auto",
+                                top: "auto",
+                                bottom: "auto"
+                            });
+                        }
+                    });
+    });
+
+    </script>
+    </head>
+    <body>
+    <head>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" integrity="sha384-ekzFgdUyJibDJSR+Jb+wdX4Axq7rKjHcXdMI1a3iFxoZou1GEGq3w5LaD1aMhohc" crossorigin="anonymous">
+    </head>
+    
+    <div id='maplegend2' class='maplegend' 
+        style='position: absolute; z-index:9999; border:2px grey; background-color:rgba(255, 255, 255, 0.8);
+        border-radius:6px; padding: 10px; font-size:13px; left: 10px; bottom: 150px;'>
+        
+    <div class='legend-title'>스마트워치 심박수 데이터 범례</div>
+    <div class='legend-scale'>
+    <ul class='legend-labels'>
+        <li><span style='background:#E1C6A9;opacity:1;'></span><strong>전체 데이터 75% 미만 범위</strong></li>
+        <li><span style='background:#BC8344;opacity:1;'></span><strong>전체 데이터 75% 이상 범위</strong></li>
+        <li><span style='background:#664724;opacity:1;'></span><strong>기존 범위에서 벗어난 이상치</strong></li>
+
+
+    </ul>
+    </div>
+    </div>
+    
+    </body>
+    </html>
+
+    <style type='text/css'>
+    .maplegend .legend-title {
+        text-align: left;
+        margin-bottom: 5px;
+        font-weight: bold;
+        font-size: 90%;
+        }
+    .maplegend .legend-scale ul {
+        margin: 0;
+        margin-bottom: 5px;
+        padding: 0;
+        float: left;
+        list-style: none;
+        }
+    .maplegend .legend-scale ul li {
+        font-size: 80%;
+        list-style: none;
+        margin-left: 0;
+        line-height: 18px;
+        margin-bottom: 2px;
+        }
+    .maplegend ul.legend-labels li span {
+        display: block;
+        float: left;
+        height: 16px;
+        width: 30px;
+        margin-right: 5px;
+        margin-left: 0;
+        border: 1px solid #999;
+        }
+    .maplegend .legend-source {
+        font-size: 80%;
+        color: #777;
+        clear: both;
+        }
+    .maplegend a {
+        color: #777;
+        }
+    </style>
+    {% endmacro %}"""
+                
+    # Add the legend to the map
+    macro = MacroElement()
+    macro._template = Template(template5)
+    macro.add_to(m)
+
 
     # 점 찍고 점과 점 사이 거리 재기
     m.add_child(MeasureControl())
@@ -2645,6 +2747,17 @@ if button:
         safety_place = safety_place[safety_place['국립공원명']==selected_national_park]
         df_AED = df_AED[df_AED['국립공원명']==selected_national_park]
         df_fall = df_fall[df_fall['국립공원명']==selected_national_park]
+        # Point 객체로 변환하여 geometry 컬럼 생성
+        geometry = [Point(xy) for xy in zip(df_fall['경도'], df_fall['위도'])]
+
+        # GeoDataFrame 생성
+        df_fall = gpd.GeoDataFrame(df_fall, geometry=geometry)
+
+        # 좌표계 설정 (WGS84: EPSG 4326)
+        df_fall.set_crs(epsg=4326, inplace=True)
+
+        df_fall = gpd.sjoin(df_fall,npark_boundary)
+
         selected_npark_boundary = find_boundary(npark_boundary,selected_national_park)
         selected_npark_boundary_hotspot = find_boundary_hotspot(npark_boundary,selected_national_park)
         selected_national_park_accident = sjoin(gdf_park_data,selected_npark_boundary,selected_national_park)
@@ -2801,13 +2914,17 @@ if button:
                     # 지도 생성
                     m3 = fall_model(fall_gdf)
                     folium_static(m3)
+                    st.write("설치 시급지점이란?")
+                    st.write("왼쪽 사이드바에서 설정한 이격거리로 사고발생확률 95% 이상인 구간 중심점과 모든 기존 안전쉼터와의 거리를 재고, 설정한 거리보다 더 멀리 떨어진 지점을 설치 시급지점으로 볼 수 있어요.")
 
                 with tabs[tab_index + 1]:
                     # 지도 생성
                     m4 = heart_model(heart_gdf)
                     folium_static(m4)
-                
+                    st.write("설치 시급지점이란?")
+                    st.write("왼쪽 사이드바에서 설정한 이격거리로 사고발생확률 95% 이상인 구간 중심점과 모든 기존 안전쉼터와의 거리를 재고, 설정한 거리보다 더 멀리 떨어진 지점을 설치 시급지점으로 볼 수 있어요.")
                 tab_index += 2
+                
 
             with tabs[tab_index]:
                 # 지도 생성
@@ -2823,3 +2940,5 @@ if button:
                 # 지도 생성
                 m7 = make_hotspot_heart(selected_national_park_accident_hotspot, selected_npark_boundary_hotspot, df_AED, st.session_state['distance'])
                 folium_static(m7)
+
+
