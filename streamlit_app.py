@@ -2599,23 +2599,37 @@ def load_data(park_name):
 
 #######################
 # Sidebar
+
+# 세션 상태 초기화
+if 'initialized' not in st.session_state:
+    st.session_state['initialized'] = True
+    st.session_state.selected_national_park = '북한산'  # 기본값 설정
+    st.session_state.year = ['전체']
+    st.session_state.gender = '전체'
+    st.session_state.month = ['전체']
+    st.session_state.age = ['전체']
+    st.session_state.distance = 1000  # 기본값 설정
+
+# Sidebar
 with st.sidebar:
     st.title('국립공원 Dashboard')
     nationpark_list = ['북한산', '설악산', '지리산', '무등산', '덕유산', '계룡산', '월출산', '태백산', '월악산', '내장산',
-       '속리산', '주왕산', '소백산', '변산반도', '치악산', '오대산', '가야산', '다도해해상', '한려해상', '경주',
-       '태안해안']
-    st.selectbox('국립공원 선택', nationpark_list,key='selected_national_park')
-    year_list = [2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023]
+                       '속리산', '주왕산', '소백산', '변산반도', '치악산', '오대산', '가야산', '다도해해상', '한려해상', '경주', '태안해안']
+    selected_national_park = st.selectbox('국립공원 선택', nationpark_list, key='selected_national_park', index=nationpark_list.index(st.session_state.selected_national_park))
 
-    year_list.insert(0,'전체')
-    year = st.multiselect('연도 선택',year_list,key='year',default='전체')
-    gender_list = ['전체','남','여']
-    st.selectbox('성별 선택',gender_list,key='gender')
-    month = st.multiselect('월별 선택',
-    ['전체','1월', '2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'],key='month',default='전체')
-    age = st.multiselect('연령대 선택',
-    ['전체','20대미만','20대', '30대','40대','50대', '60대', '70대 이상', '미상', '집단'],key='age',default='전체')
-    resolution = st.slider('기존 안전시설물과 사고 핫스팟 중심점 간의 거리(m) 설정', 500, 3000, 500,100,key='distance')
+    year_list = [2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023]
+    year_list.insert(0, '전체')
+    year = st.multiselect('연도 선택', year_list, key='year', default=st.session_state.year)
+
+    gender_list = ['전체', '남', '여']
+    gender = st.selectbox('성별 선택', gender_list, key='gender', index=gender_list.index(st.session_state.gender))
+
+    month = st.multiselect('월별 선택', ['전체', '1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'], key='month', default=st.session_state.month)
+
+    age = st.multiselect('연령대 선택', ['전체', '20대미만', '20대', '30대', '40대', '50대', '60대', '70대 이상', '미상', '집단'], key='age', default=st.session_state.age)
+
+    resolution = st.slider('기존 안전시설물과 사고 핫스팟 중심점 간의 거리(m) 설정', 500, 3000, key='distance', value=st.session_state.distance, step=100)
+
     st.write('핫스팟 중심점과의 이격거리(m)를 초과한 지점이 곧 핫스팟 내 안전시설물 우선설치 필요 지점 예측을 말해요.')
     button = st.button('분석 시작')
     image1 = './logo/국공.svg'
