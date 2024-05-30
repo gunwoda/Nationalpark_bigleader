@@ -2356,7 +2356,7 @@ def heart_model(heart_gdf):
     )
 
     # 레이어 켜고 끄는 컨트롤 추가
-    LayerControl().add_to(m)
+    folium.LayerControl().add_to(m)
     
     template5 = """
     {% macro html(this, kwargs) %}
