@@ -2923,6 +2923,9 @@ if button:
                     # 지도 생성
                     m4 = heart_model(heart_gdf)
                     folium_static(m4)
+                    st.write("설치 시급지점이란?")
+                    st.write("왼쪽 사이드바에서 설정한 이격거리로 모든 사고발생확률 95% 이상인 구간 중심점과 모든 기존 안전쉼터와의 거리를 재고, \n설정한 거리보다 더 멀리 떨어진 지점을 설치 시급지점으로 볼 수 있어요.")
+
 
                 
                 tab_index += 2
