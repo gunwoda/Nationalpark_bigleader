@@ -2275,8 +2275,8 @@ def heart_model(heart_gdf):
 
     # 히트맵 레이어 생성
     heat_data = [[row['위도'], row['경도']] for index, row in park_watch.iterrows()]
-    heat_layer = plugins.HeatMap(heat_data, radius=15, gradient={0.2: 'blue', 0.4: 'green', 0.6: 'yellow', 0.8: 'orange', 1: 'red'}, name='스마트워치 히트맵')
-    heat_layer.add_to(m)
+    plugins.HeatMap(heat_data, radius=15, gradient={0.2: 'blue', 0.4: 'green', 0.6: 'yellow', 0.8: 'orange', 1: 'red'}, name='스마트워치 히트맵').add_to(m)
+    
     # 안전쉼터 위치를 Marker로 추가
     shelter_layer = folium.FeatureGroup(name='안전쉼터')
     for idx, row in shelter.iterrows():
@@ -2351,9 +2351,7 @@ def heart_model(heart_gdf):
     m.add_child(MeasureControl())
 
     # 모든 지점 위경도 표시
-    m.add_child(
-        folium.LatLngPopup()
-    )
+    m.add_child(folium.LatLngPopup())
 
     # 레이어 켜고 끄는 컨트롤 추가
     folium.LayerControl().add_to(m)
