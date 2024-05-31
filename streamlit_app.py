@@ -2246,37 +2246,6 @@ def heart_model(heart_gdf):
         )
     ).add_to(m)
 
-    # 스마트워치 레이어
-    smartwatch_layer = folium.FeatureGroup(name='스마트워치')
-    Q1 = park_watch['심박수'].quantile(0.25)
-    Q3 = park_watch['심박수'].quantile(0.75)
-    IQR = Q3 - Q1
-    outlier_threshold = Q3 + 1.5 * IQR
-    high_heart_rate_threshold = park_watch['심박수'].quantile(0.75)
-
-    for idx, row in park_watch.iterrows():
-        if row['심박수'] > outlier_threshold:
-            color = '#664724'
-        elif row['심박수'] >= high_heart_rate_threshold:
-            color = '#BC8344'
-        else:
-            color = '#E1C6A9'
-        folium.CircleMarker(
-            location=(row['위도'], row['경도']),
-            radius=3,
-            color=color,
-            fill=True,
-            fill_color=color,
-            fill_opacity=0.5,
-            opacity=0.5,
-            tooltip=f"심박수: {row['심박수']}"
-        ).add_to(smartwatch_layer)
-    smartwatch_layer.add_to(m)
-
-    # 히트맵 레이어 생성
-    heat_data = [[row['위도'], row['경도']] for index, row in park_watch.iterrows()]
-    plugins.HeatMap(heat_data, radius=15, gradient={0.2: 'blue', 0.4: 'green', 0.6: 'yellow', 0.8: 'orange', 1: 'red'}, name='스마트워치 히트맵').add_to(m)
-    
     # 안전쉼터 위치를 Marker로 추가
     shelter_layer = folium.FeatureGroup(name='안전쉼터')
     for idx, row in shelter.iterrows():
@@ -2345,8 +2314,37 @@ def heart_model(heart_gdf):
         ).add_to(need_shelter_layer)
     need_shelter_layer.add_to(m)
 
+    # 스마트워치 레이어
+    smartwatch_layer = folium.FeatureGroup(name='스마트워치')
+    Q1 = park_watch['심박수'].quantile(0.25)
+    Q3 = park_watch['심박수'].quantile(0.75)
+    IQR = Q3 - Q1
+    outlier_threshold = Q3 + 1.5 * IQR
+    high_heart_rate_threshold = park_watch['심박수'].quantile(0.75)
 
+    for idx, row in park_watch.iterrows():
+        if row['심박수'] > outlier_threshold:
+            color = '#664724'
+        elif row['심박수'] >= high_heart_rate_threshold:
+            color = '#BC8344'
+        else:
+            color = '#E1C6A9'
+        folium.CircleMarker(
+            location=(row['위도'], row['경도']),
+            radius=3,
+            color=color,
+            fill=True,
+            fill_color=color,
+            fill_opacity=0.5,
+            opacity=0.5,
+            tooltip=f"심박수: {row['심박수']}"
+        ).add_to(smartwatch_layer)
+    smartwatch_layer.add_to(m)
 
+    # 히트맵 레이어 생성
+    heat_data = [[row['위도'], row['경도']] for index, row in park_watch.iterrows()]
+    plugins.HeatMap(heat_data, radius=15, gradient={0.2: 'blue', 0.4: 'green', 0.6: 'yellow', 0.8: 'orange', 1: 'red'}, name='스마트워치 히트맵').add_to(m)
+    
     # 점 찍고 점과 점 사이 거리 재기
     m.add_child(MeasureControl())
 
